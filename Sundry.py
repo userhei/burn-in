@@ -128,8 +128,8 @@ def ShowErr(*argvs):
     if error_level == 1:
         print(str('''
 ----------------------------------------------------------------------------
-|*Error Message:                                                           |
-|    Error Message: {:<55}|
+|*Error message:                                                           |
+|    Error message: {:<55}|
 |        {:<66}|
 ----------------------------------------------------------------------------\
 '''.format(argvs[2], err_msg = (argvs[3] if argvs[3] else '' ))))
@@ -138,10 +138,10 @@ def ShowErr(*argvs):
     elif error_level == 3:
         print(str('''
 ----------------------------------------------------------------------------
-|*Error Message:                                                           |
-|    Class Name :   {:<55}|
+|*Error message:                                                           |
+|    Class name :   {:<55}|
 |    Function name: {:<55}|
-|    Error Message: {:<55}|
+|    Error message: {:<55}|
 |        {:<66}|
 ----------------------------------------------------------------------------\
 
@@ -159,7 +159,7 @@ def GotoFolder(strFolder):
                     os.makedirs(strFolder)
                     return True
                 except Exception as E:
-                    print('Create Folder "{}" Fail With Error:\n\t"{}"'.format(
+                    print('Create folder "{}" fail with error:\n\t"{}"'.format(
                         strFolder, E))
 
     if _mkdir():
@@ -167,7 +167,7 @@ def GotoFolder(strFolder):
             os.chdir(strFolder)
             return True
         except Exception as E:
-            print('Change to Folder "{}" Fail With Error:\n\t"{}"'.format(
+            print('Change to folder "{}" fail with error:\n\t"{}"'.format(
                 strFolder, E))
 
 
@@ -229,7 +229,7 @@ def TraceAnalyse(strTraceFolder):
                 strTrace = f.read()
             return strTrace.strip().replace('\ufeff', '')
         except Exception as E:
-            print('Open File "{}" Failed With Error:\n\t"{}"'.format(
+            print('Open file "{}" failed with error:\n\t"{}"'.format(
                 strFileName, E))
 
     def _trace_analize(lstTraceFiles):
@@ -237,14 +237,14 @@ def TraceAnalyse(strTraceFolder):
         strRunResult = ''
         for strFileName in lstTraceFiles:
             if (lambda i: i.startswith('Trace_'))(strFileName):
-                print('\n"{}"  Analysing ...'.format(strFileName))
-                strRunResult += '\n"{}"  Analysing ...\n'.format(strFileName)
+                print('\n"{}"  analyzing ...'.format(strFileName))
+                strRunResult += '\n"{}"  analyzing ...\n'.format(strFileName)
                 openExcel = xlwt.Workbook()
                 for strErrType in oddHAAPErrorDict.keys():
                     reErr = re.compile(oddHAAPErrorDict[strErrType])
                     tupErr = reErr.findall(_read_file(strFileName))
                     if len(tupErr) > 0:
-                        strOut = ' *** "{}" Times of "{}" Found...'.format(
+                        strOut = ' *** "{}" times of "{}" found...'.format(
                             (len(tupErr) + 1), strErrType)
                         print(strOut)
                         strRunResult += strOut
@@ -257,10 +257,10 @@ def TraceAnalyse(strTraceFolder):
                         intErrFlag += 1
                     reErr = None
                 if intErrFlag > 0:
-                    openExcel.save('TraceAnalyse_' + 
+                    openExcel.save('TraceAnalyze_' +    
                                    strFileName + '.xls')
                 else:
-                    strOut = '--- No Error Find in "{}"'.format(strFileName)
+                    strOut = '--- No error find in "{}"'.format(strFileName)
                     print(strOut)
                     strRunResult += strOut
                 intErrFlag = 0

@@ -53,7 +53,7 @@ def print_porterror_formated(ip):
         if ip in list_sw_IP:
             return list_sw_IP.index(ip)
         else:
-            print('"%s" is NOT Configured in Conf.ini' % ip)
+            print('"%s" is not configured in Config.ini' % ip)
     id = get_index(ip, list_sw_IP)
     if id is not None:
         Status(list_sw_IP[id],
@@ -71,7 +71,7 @@ def print_switchshow(ip):
     if ip in list_sw_IP:
         Action(ip, ssh_port, user, passwd, []).print_switchshow()
     else:
-        print('"%s" is NOT Configured in Conf.ini' % ip)
+        print('"%s" is not configured in Config.ini' % ip)
 
 def periodically_check_all():
     for ip in list_sw_IP:
@@ -136,41 +136,41 @@ class Action():
     @s.deco_Exception
     def print_porterrshow(self):
         if self.strPorterrshow:
-            print('Porterrshow for SAN Switch "{}":\n'.format(self._host))
+            print('porterrshow for SAN switch "{}":\n'.format(self._host))
             print(self.strPorterrshow)
 
     @s.deco_Exception
     def print_switchshow(self):
         if self.strSwitchshow:
-            print('Switchshow for SAN Switch "{}":\n'.format(self._host))
+            print('switchshow for SAN switch "{}":\n'.format(self._host))
             print(self.strSwitchshow)
 
     @s.deco_Exception
     def clear_all_port(self):#
         try:
-            print('\nStart Clear ALL Error Count For SAN Switch "{}"...'.format(
+            print('\nStart clearing all error count For SAN switch "{}"...'.format(
                 self._host))
             self._SWConn.exctCMD('statsclear') #命令行命令
             time.sleep(0.5)
-            print('Clear Error Count for SW "{}" Completely...'.format(
+            print('Clear error count for sw "{}" completed...'.format(
                 self._host))
         except:
-            print('Clear Error Count for SW "{}" Failed!!!'.format(self._host))
+            print('Clear error count for sw "{}" failed!!!'.format(self._host))
 
 
     @s.deco_Exception
     def clear_one_port(self, intSWPort):#参数
         try:
-            print('Start Clear Port {} For SAN Switch "{}"...'.format(
+            print('Start clearing port {} for SAN switch "{}"...'.format(
                 str(intSWPort), self._host))
             #self._SWConn.exctCMD(
                 #'portstatsclear {}'.format(str(intSWPort)))
             self._SWConn.exctCMD('portstatsclear %s' % str(intSWPort))
-            print('Clear Error Count of Port {} for SW "{}" Completely...\
+            print('Clear error count of port {} for sw "{}" completed...\
                 '.format(str(intSWPort), self._host))
             return True
         except Exception as E:
-            print('Clear Error Count Failed!!!')
+            print('Clear error count failed!!!')
     
     @s.deco_OutFromFolder
     def periodic_check(self, lstCommand, strResultFolder, strResultFile):
@@ -185,7 +185,7 @@ class Action():
                             print(strResult)
                             f.write(strResult)
                         else:
-                            strErr = '\n*** Execute Command "{}" Failed\n'.format(
+                            strErr = '\n*** Execute command "{}" failed\n'.format(
                                 strCMD)
                             print(strErr)
                             f.write(strErr)
@@ -294,7 +294,7 @@ class Status(Action):
                         print(lstPortErrorList[i_port][i_type].ljust(tuplWidth[i_type+1]), end='')
                     print()
 
-        print('\nPort Error Show for SAN Switch "%s":\n' % self._host)
+        print('\nPort error count display for SAN switch "%s":\n' % self._host)
         _print_description()
         _print_status_in_line(self._dicPartPortError)
 
@@ -305,7 +305,7 @@ class Status(Action):
             if intSWPort in self._dicPartPortError.keys():
                 return self._dicPartPortError[intSWPort][4]
             else:
-                return 'Please Correct the Port Number...'
+                return 'Please correct the port number...'
 
     @s.deco_Exception
     def get_encout_by_port(self, intSWPort):
@@ -313,7 +313,7 @@ class Status(Action):
             if intSWPort in self._dicPartPortError.keys():
                 return self._dicPartPortError[intSWPort][2]
             else:
-                print('Please Correct the Port Number...')
+                print('Please correct the port number...')
 
 
     @s.deco_Exception
@@ -322,7 +322,7 @@ class Status(Action):
             if intSWPort in self._dicPartPortError.keys():
                 return self._dicPartPortError[intSWPort][3]
             else:
-                print('Please Correct the Port Number...')
+                print('Please correct the port number...')
 
 
 class InfoForDB(object):

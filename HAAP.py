@@ -254,11 +254,11 @@ st
         for strCFGFile in lstCFGFile:
             if connFTP.GetFile('bin_conf', '.', strCFGFile,
                                'backup_{}_{}'.format(self._host, strCFGFile)):
-                print('{} Backup Completely for {}'.format(
+                print('{} backup completely for {}'.format(
                     strCFGFile.ljust(12), self._host))
                 continue
             else:
-                print('{} Backup Failed for {}'.format(
+                print('{} backup failed for {}'.format(
                     strCFGFile.ljust(12), self._host))
                 break
             time.sleep(0.25)
@@ -268,14 +268,14 @@ st
         connFTP = self._ftp()
         time.sleep(0.25)
         connFTP.PutFile('/mbflash', './', 'fwimage', strFWFile)
-        print('FW Upgrade Done for {}, Waiting for reboot...'.format(
+        print('FW upgrade completed for {}, waiting for reboot...'.format(
             self._host))
 
     @s.deco_Exception
     def auto_commands(self, strCMDFile):
         tn = self._TN_Conn
         if self.AHStatus:
-            print("Engine '%s' is at AH Status(AH Code %d)"
+            print("Engine '%s' is at AH status(AH Code %d)"
                   % (self.host, self.AHStatus))
             return
         with open(strCMDFile, 'r') as f:
@@ -285,7 +285,7 @@ st
                 if strResult:
                     print(strResult)
                 else:
-                    print('\rExecute Command "{}" Failed ...'.format(
+                    print('\rExecute command "{}" failed ...'.format(
                         strCMD))
                     break
                 time.sleep(0.5)
@@ -305,7 +305,7 @@ st
                         oddCMD['Secondary'] = 'ftpprep coredump secondary all'
                 return oddCMD
             else:
-                print('Trace Level Must Be: 1 or 2 or 3, Please Refer "Config.ini" ')
+                print('Trace level must be: 1 or 2 or 3, please refer "Config.ini" ')
 
         def _get_trace_file(command, strTraceDes):
 
@@ -317,7 +317,7 @@ st
                 if strTraceName:
                     return strTraceName.group()
                 else:
-                    print('Generate Trace "{}" File Failed for "{}"'.format(
+                    print('Generate trace "{}" file failed for "{}"'.format(
                         strTraceDes, self._host))
 
             trace_name = _get_trace_name()
@@ -325,11 +325,11 @@ st
                 time.sleep(0.1)
                 local_name = 'Trace_{}_{}.log'.format(self._host, strTraceDes)
                 if connFTP.GetFile('mbtrace', '.', trace_name, local_name):
-                    print('Get Trace "{:<10}" for "{}" Completely ...'.format(
+                    print('Get trace "{:<10}" for "{}" completed ...'.format(
                         strTraceDes, self._host))
                     return True
                 else:
-                    print('Get Trace "{:<10}" for Engine "{}" Failed!!!\
+                    print('Get trace "{:<10}" for engine "{}" failed!!!\
                         '.format(strTraceDes, self._host))
                 #     s.ShowErr(self.__class__.__name__,
                 #               sys._getframe().f_code.co_name,
@@ -359,7 +359,7 @@ st
     @s.deco_OutFromFolder
     def periodic_check(self, lstCommand, strResultFolder, strResultFile):
         if self.AHStatus:
-            print("Engine '%s' is at AH Status(AH Code %d)"
+            print("Engine '%s' is at AH status(AH Code %d)"
                   % (self.host, self.AHStatus))
             return
         tn = self._TN_Conn
@@ -373,14 +373,14 @@ st
                         print(strResult)
                         f.write(strResult)
                     else:
-                        strErr = '\n*** Execute Command "{}" Failed\n'.format(
+                        strErr = '\n*** Execute command "{}" failed\n'.format(
                             strCMD)
                         print(strErr)
                         f.write(strErr)
 
     def set_time(self):
         if self.AHStatus:
-            print("Engine '%s' is at AH Status(AH Code %d)"
+            print("Engine '%s' is at AH status(AH Code %d)"
                   % (self.host, self.AHStatus))
             return
 
@@ -388,7 +388,7 @@ st
             t = s.TimeNow()
 
             def complete_print(strDesc):
-                print('    Set  %-13s for Engine "%s" Completely...\
+                print('    Set  %-13s for engine "%s" completed...\
                         ' % ('"%s"' % strDesc, self._host))
                 time.sleep(0.25)
 
@@ -411,32 +411,32 @@ st
             except Exception as E:
                 s.ShowErr(self.__class__.__name__,
                           sys._getframe().f_code.co_name,
-                          'rtc Set Faild for Engine "{}" with Error:'.format(
+                          'rtc set faild for engine "{}" with error:'.format(
                               self._host),
                           '"{}"'.format(E))
 
         if self._TN_Conn:
             if _exct_cmd():
                 print(
-                    '\nSetting Time for Engine "%s" Completely...' % 
+                    '\nSetting time for engine "%s" completed...' % 
                     self._host)
             else:
-                print('\nSetting Time for Engine "%s" Failed!!!' % self._host)
+                print('\nSetting time for engine "%s" failed!!!' % self._host)
         else:
-            print('\nSetting Time for Engine "%s" Failed!!!' % self._host)
+            print('\nSetting time for engine "%s" failed!!!' % self._host)
 
     def show_time(self):
         if self.AHStatus:
             print("Engine '%s' is at AH Status(AH Code %d)"
                   % (self._host, self.AHStatus))
             return
-        print('Time of Engine "%s":' % self._host)
+        print('Time of engine "%s":' % self._host)
         if self._TN_Conn:
             try:
                 print(self._TN_Conn.exctCMD('rtc').replace(
                     '\nCLI>', '').replace('rtc\r\n', ''))
             except BaseException:
-                print('Get Time of Engine "%s" Failed' % self._host)
+                print('Get time of engine "%s" failed' % self._host)
 
 
 class Uptime(object):
@@ -577,14 +577,14 @@ class Status(Action):
         if resultFW:
             return resultFW.group().replace('Firmware ', '')
         else:
-            print('Get Firmware Version Failed for Engine "%s"' % self._host)
+            print('Get firmware version failed for engine "%s"' % self._host)
 
 # ## Matt Need to be optimise...
     @s.deco_Exception
     def get_mirror_status(self):
         strMirror = self.dictInfo['mirror']
         if strMirror is None:
-            print('Get Mirror Status Failed for Engine "%s"' % self._host)
+            print('Get mirror status failed for engine "%s"' % self._host)
         else:
             reMirrorID = re.compile(r'\s\d+\(0x\d+\)')  # e.g." 33281(0x8201)"
             reNoMirror = re.compile(r'No mirrors defined')
@@ -612,7 +612,7 @@ class Status(Action):
                 if reNoMirror.search(strMirror):
                     return -1  # -1 means no mirror defined
                 else:
-                    print('Get Mirror Status Failed for Engine "%s"' % 
+                    print('Get mirror status failed for engine "%s"' % 
                           self._host)
 
     # update lststatus

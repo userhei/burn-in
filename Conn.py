@@ -31,7 +31,7 @@ class FTPConn(object):
             except Exception as E:
                 s.ShowErr(self.__class__.__name__,
                           sys._getframe().f_code.co_name,
-                          'FTP Connect to "{}" Failed with Error:'.format(
+                          'FTP connect to "{}" failed with error:'.format(
                               self._host),
                           '"{}"'.format(E))
 
@@ -44,7 +44,7 @@ class FTPConn(object):
                 # print(E)
                 s.ShowErr(self.__class__.__name__,
                           sys._getframe().f_code.co_name,
-                          'FTP Login to "{}" Failed with Error:'.format(
+                          'FTP login to "{}" failed with error:'.format(
                               self._host),
                           '"{}"'.format(E))
 
@@ -74,7 +74,7 @@ class FTPConn(object):
             except Exception as E:
                 s.ShowErr(self.__class__.__name__,
                           sys._getframe().f_code.co_name,
-                          'FTP Download "{}" Failed with Error:'.format(
+                          'FTP download "{}" failed with error:'.format(
                               self._host),
                           '"{}"'.format(E))
 
@@ -107,7 +107,7 @@ class FTPConn(object):
             except Exception as E:
                 s.ShowErr(self.__class__.__name__,
                           sys._getframe().f_code.co_name,
-                          'FTP Upload "{}" Failed with Error:'.format(
+                          'FTP upload "{}" failed with error:'.format(
                               self._host),
                           '"{}"'.format(E))
 
@@ -183,7 +183,7 @@ class SSHConn(object):
     def ssh_connect(self):
         self._connect()
         if not self.SSHConnection:
-            print('Connect Retry for SAN Switch "%s" ...' % self._host)
+            print('Connect retry for SAN switch "%s" ...' % self._host)
             self._connect()
 
 
@@ -196,7 +196,7 @@ class SSHConn(object):
                 return data
             err = stderr.read()
             if len(err) > 0:
-                print('''Excute Command "{}" Failed on "{}" With Error:
+                print('''Excute command "{}" failed on "{}" with error:
     "{}"'''.format(command, self._host, err.strip()))
 
         def _return(strResult):
@@ -248,7 +248,7 @@ class HAAPConn(object):
         except Exception as E:
             s.ShowErr(self.__class__.__name__,
                       sys._getframe().f_code.co_name,
-                      'Telnet Connect to "{}" Failed with Error:'.format(
+                      'Telnet connect to "{}" failed with error:'.format(
                           self._host),
                       '"{}"'.format(E))
 
@@ -256,7 +256,7 @@ class HAAPConn(object):
         if self.Connection:
             return True
         else:
-            print('Connect Retry for Engine "%s" ...' % self._host)
+            print('Connect retry for engine "%s" ...' % self._host)
             self._connect()
 
     def telnet_connect(self):

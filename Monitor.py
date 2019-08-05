@@ -150,14 +150,14 @@ tlu = Time Last Update
 
 def stopping_web(intSec):
     try:
-        print('\nStopping Web Server ', end='')
+        print('\nStopping web server ', end='')
         for i in range(intSec):
             time.sleep(1)
             print('.', end='')
         time.sleep(1)
-        print('\n\nWeb Server Stopped.')
+        print('\n\nWeb server stopped.')
     except KeyboardInterrupt:
-        print('\n\nWeb Server Stopped.')
+        print('\n\nWeb server stopped.')
 
 
 def haap_interval_check(intInterval):
@@ -211,7 +211,7 @@ def warning_check():
     if unconfirm_warning:
         se.send_warnmail(unconfirm_warning)
     else:
-        print('No Unconfirm Warning Found...')
+        print('No unconfirm warning found...')
 
 # check status interval
 
@@ -240,7 +240,7 @@ class haap_judge(object):
             return True    
 
     def judge_reboot(self, uptime_second_rt, uptime_second_db):
-        str_engine_restart = 'Engine Reboot %d secends ago'
+        str_engine_restart = 'Engine reboot %d secends ago'
         if uptime_second_rt < uptime_second_db:
             db.insert_warning(self.strTimeNow, self.host,
                               'engine', 2, str_engine_restart % (uptime_second_rt), 0)
@@ -312,7 +312,7 @@ def warning_message_sansw(intWarninglevel):
         strLevel = 'Warning'
     elif intWarninglevel == 2:
         strLevel = 'Alarm'
-    return 'Total Error Count Increase Reach Level %s' % strLevel
+    return 'Total error count increase reach level %s' % strLevel
 
 
 def haap_info_to_show():

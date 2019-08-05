@@ -27,64 +27,64 @@ strTraceFolder = setting.folder_trace()
 strHelp = '''
         Command   Description
 
-        ptes    : Port Error Show for SAN Switch(s)('porterrshow')
-        ptcl    : Clear Port Error Counter('statsclear' or 'portstatsclear')
-        sws     : Print SAN Switch Info('switchshow')
+        ptes    : Port error count display for SAN switch(s)('porterrshow')
+        ptcl    : Clear port error counter('statsclear' or 'portstatsclear')
+        sws     : Print SAN switch info('switchshow')
 
-        gt      : Get Trace of HA-AP Engine(s)
-        at      : Analyse Trace of HA-AP Engine(s)
-        bc      : Backup Config for HA-AP Engine(s)
-        ec      : Execute Commands
-        fw      : Change Firmware for HA-AP Engine
-        sts     : Show Overall Status for HA-AP Engine(s)
-        st      : Sync Time with Local System
-        stm     : Show Time Now for HA-AP Engine(s)
+        gt      : Get trace of HA-AP engine(s)
+        at      : Analyse trace of HA-AP engine(s)
+        bc      : Backup config for HA-AP engine(s)
+        ec      : Execute commands
+        fw      : Change firmware for HA-AP engine
+        sts     : Show overall status for HA-AP engine(s)
+        st      : Sync time with local system
+        stm     : Show time now for HA-AP engine(s)
 
-        pc      : Periodically Check
-        mnt     : Monitor and Show Status throgh Web Server
+        pc      : Periodically check
+        mnt     : Monitor and show status throgh web server
         '''
 
 
 strPTESHelp = '''
     Show port error of defined pors as table formatted
     ptes <SW_IP> | all   
-        SW_IP  - for defined SAN Switch
-        all    - for All SAN Switchs defined in Conf.ini
+        SW_IP  - for defined SAN switch
+        all    - for all SAN switchs defined in Conf.ini
 '''
 
 strPTCLHelp = '''
-    Clear Port Error Counter('statsclear' or 'portstatsclear')
+    Clear port error counter('statsclear' or 'portstatsclear')
     ptcl <SW_IP Port> | all
-        SW_IP Port  - for defined Port of defined SAN Switch
-        all         - for All SAN Switchs defined in Conf.ini
+        SW_IP Port  - for defined port of defined SAN switch
+        all         - for all SAN switchs defined in Conf.ini
 '''
 
 strSWSHelp = '''
-    Print SAN Switch Connect Info('switchshow')
+    Print SAN switch connect info('switchshow')
     sws <SW_IP> | all
-        SW_IP  - for defined SAN Switch
-        all    - for All SAN Switchs defined in Conf.ini
+        SW_IP  - for defined SAN switch
+        all    - for all SAN switchs defined in Conf.ini
 '''
 
 strFWHelp = '''
-    Change Firmware for Given Engine Using <FW_File>
+    Change firmware for given engine using <FW_File>
     fw <HAAP_IP> <FW_File>
 '''
 
 strBCHelp = '''
-    Backup Config for HA-AP Engine(s), Save in "{}" Folder
+    Backup config for HA-AP engine(s), save in "{}" folder
     bc <HAAP_IP> | all
-        HAAP_IP  - for Given HA-AP Engine
-        all      - for All HA-AP Engines defined in Conf.ini        
+        HAAP_IP  - for given HA-AP engine
+        all      - for all HA-AP engines defined in Config.ini        
 '''.format(strCFGFolder)
 
 
 strGTHelp = '''
-    Get Trace of HA-AP Engine(s), Save in "{}" Folder
+    Get trace of HA-AP engine(s), save in "{}" folder
     gt <HAAP_IP> [Trace_Level] | all [Trace_Level]
-        HAAP_IP        - for defined HA-AP Engine
-        all            - for All HA-AP Engines Defined in Conf.ini
-            [Trace_Level]  - Option, Given or Defined
+        HAAP_IP        - for defined HA-AP engine
+        all            - for all HA-AP engines defined in Config.ini
+            [Trace_Level]  - option, given or defined
 '''.format(strTraceFolder)
 
 # strATHelp = '''
@@ -96,46 +96,46 @@ strGTHelp = '''
 # '''.format(strTraceFolder)
 
 strATHelp = '''
-    Analyse Given Trace of HA-AP Engine(s) in Folder <Trace_Folder>
+    Analyse given trace of HA-AP engine(s) in folder <Trace_Folder>
     at <Trace_Folder>
 '''
 
 strECHelp = '''
-    Execute Commands listed in <Command_File> on Given Engine
+    Execute commands listed in <Command_File> on given engine
     ec <HAAP_IP> <Command_File>
 '''
 
 strSTSHelp = '''
     sts <HAAP_IP> | all
-        HAAP_IP  - for Given HA-AP Engine
-        all      - for All HA-AP Engines defined in Conf.ini        
+        HAAP_IP  - for given HA-AP engine
+        all      - for all HA-AP engines defined in Config.ini        
 '''
 
 strSTHelp = '''
     st <HAAP_IP> | all
-        HAAP_IP  - for Given HA-AP Engine
-        all      - for All HA-AP Engines defined in Conf.ini        
+        HAAP_IP  - for given HA-AP engine
+        all      - for all HA-AP engines defined in Config.ini        
 '''
 
 strSTMHelp = '''
     stm <HAAP_IP> | all
-        HAAP_IP  - for Given HA-AP Engine
-        all      - for All HA-AP Engines defined in Conf.ini
+        HAAP_IP  - for given HA-AP engine
+        all      - for all HA-AP engines defined in Config.ini
 '''
 
 strPCHelp = '''
-    Periodically Check for HA-AP Engine(s) or SAN Switch(s)
+    Periodically check for HA-AP engine(s) or SAN switch(s)
     pc <sw [SW_IP]|haap [HAAP_IP]> | all
-        sw SW_IP      - for Given HA-AP Engine
-        haap HAAP_IP  - for Given HA-AP Engine
-        all           - for All HA-AP Engines and SAN Switches
+        sw SW_IP      - for given HA-AP engine
+        haap HAAP_IP  - for given HA-AP engine
+        all           - for all HA-AP engines and SAN switches
 '''
 
 strMNTHelp = '''
-    Show Status Through Web Page
+    Show status through web page
     mnt rt | db
-        rt  - Get Status Real Time
-        db  - Get Status from DB(Need MongoDB)
+        rt  - Get status real time
+        db  - Get status from db(Need MongoDB)
 '''
 
 # <<<Help String Field>>>
@@ -155,7 +155,7 @@ def main():
             if s.is_IP(sys.argv[2]):
                 sw.print_porterror_formated(sys.argv[2])
             else:
-                print('Please Provide Correct Switch IP...')
+                print('Please provide correct switch ip...')
     #OK
     elif sys.argv[1] == 'ptcl':#判断执行参数是否为ptcl
         num_argv = len(sys.argv)  #获取参数的个数
@@ -169,11 +169,11 @@ def main():
                 if s.is_port(sys.argv[3]):   #在判断第4个参数是否是正确的端口      
                     sw.clear_one_port(sys.argv[2], sys.argv[3])#调用清除具体ip，端口错误
                 else:
-                    print('Please Provide Correct Port Number...') #请提供正确端口号
+                    print('Please provide correct port number...') #请提供正确端口号
             else:
                 print(strPTCLHelp) #打印提示
         else:
-            print('Please Provide Correct Switch IP...')#请提供正确的交换机ip
+            print('Please provide correct switch ip...')#请提供正确的交换机ip
     #OK
     elif sys.argv[1] == 'sws':
         num_argv = len(sys.argv)
@@ -185,7 +185,7 @@ def main():
             if s.is_IP(sys.argv[2]):
                 sw.print_switchshow(sys.argv[2])
             else:
-                print('Please Provide Correct Switch IP...')
+                print('Please provide correct switch ip...')
 
     #OK
     elif sys.argv[1] == 'bc':
@@ -198,7 +198,7 @@ def main():
             if s.is_IP(sys.argv[2]):
                 haap.backup_config(sys.argv[2])
             else:
-                print('Please Provide Correct Engine IP...')
+                print('Please provide correct engine ip...')
 
     # get engines' trace files under TraceFolder based on Trace levels
     #trace、primary、seaond
@@ -214,7 +214,7 @@ def main():
                 if s.is_trace_level(trace_level):
                     haap.get_trace_all(trace_level)
                 else:
-                    print('Trace Level Must Be "1" or "2" or "3"')
+                    print('Trace level must be "1" or "2" or "3"')
             else:
                 haap.get_trace_all(0)
         elif s.is_IP(sys.argv[2]):
@@ -222,11 +222,11 @@ def main():
                 if s.is_trace_level(trace_level):
                     haap.get_trace(sys.argv[2], trace_level)
                 else:
-                    print('Trace Level Must Be "1" or "2" or "3"')
+                    print('Trace level must be "1" or "2" or "3"')
             else:
                 haap.get_trace(sys.argv[2], 0)
         else:
-            print('Please Provide Correct Engine IP...')
+            print('Please provide correct engine ip...')
 
     # elif sys.argv[1] == 'at':
     #     num_argv = len(sys.argv)
@@ -261,7 +261,7 @@ def main():
             if s.is_folder(sys.argv[2]):
                 s.TraceAnalyse(sys.argv[2])
             else:
-                print('Please Provide Correct Trace Folder')
+                print('Please provide correct trace folder')
     #OK  python Main.py ec 10.203.1.223 cmd.txt
     elif sys.argv[1] == 'ec':
         if len(sys.argv) != 4:
@@ -270,9 +270,9 @@ def main():
             ip = sys.argv[2]
             command_file = sys.argv[3]
             if not s.is_IP(ip):
-                print('Please Provide Correct Engine IP...')
+                print('Please provide correct engine ip...')
             if not s.is_file(command_file):
-                print('File Not Exists. Please Provide Correct File...')
+                print('File not exists. please provide correct file...')
             haap.execute_multi_commands(ip, command_file)
     #OK  python Main.py fw 10.203.1.223 FW15.9.7.7_OR.bin
     elif sys.argv[1] == 'fw':
@@ -282,9 +282,9 @@ def main():
             ip = sys.argv[2]
             fw_file = sys.argv[3]
             if not s.is_IP(ip):
-                print('Please Provide Correct Engine IP...')
+                print('Please provide correct engine ip...')
             if not s.is_file(fw_file):
-                print('File Not Exists. Please Provide Correct File...')
+                print('File not exists. please provide correct file...')
             haap.change_firmware(ip, fw_file)
     #OK-
     elif sys.argv[1] == 'sts':
@@ -297,7 +297,7 @@ def main():
             if s.is_IP(sys.argv[2]):
                 haap.show_stauts(sys.argv[2])
             else:
-                print('Please Provide Correct Engine IP...')
+                print('Please provide correct engine ip...')
     #OK
     elif sys.argv[1] == 'st':
         num_argv = len(sys.argv)
@@ -309,7 +309,7 @@ def main():
             if s.is_IP(sys.argv[2]):
                 haap.set_time(sys.argv[2])
             else:
-                print('Please Provide Correct Engine IP...')
+                print('Please provide correct engine ip...')
     #OK    
     elif sys.argv[1] == 'stm':
         num_argv = len(sys.argv)
@@ -321,7 +321,7 @@ def main():
             if s.is_IP(sys.argv[2]):
                 haap.show_time(sys.argv[2])
             else:
-                print('Please Provide Correct Engine IP...')
+                print('Please provide correct engine ip...')
     #OK
     elif sys.argv[1] == 'pc':
         num_argv = len(sys.argv)
@@ -339,7 +339,7 @@ def main():
                     if s.is_IP(sys.argv[3]):
                         haap.periodically_check(sys.argv[3])
                     else:
-                        print('Please Provide Correct Engine IP...')
+                        print('Please provide correct engine ip...')
             elif sys.argv[2] == 'sw':
                 if num_argv == 3:
                     sw.periodically_check_all()
@@ -347,7 +347,7 @@ def main():
                     if s.is_IP(sys.argv[3]):
                         sw.periodically_check(sys.argv[3])
                     else:
-                        print('Please Provide Correct SAN Switch IP...')
+                        print('Please provide correct SAN switch ip...')
             else:
                 print(strPCHelp)
     #OK
@@ -360,7 +360,7 @@ def main():
         elif sys.argv[2] == 'db':
             m.monitor_db_4_thread()
         else:
-            print('RealTime(rt) or DataBase(db)')
+            print('rt(realtime) or db(datarase)')
 
     else:
         print(strHelp)
