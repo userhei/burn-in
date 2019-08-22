@@ -1,6 +1,7 @@
 # coding:utf-8
 from __future__ import print_function
 from flask import Flask, render_template, request
+from gevent.pywsgi import WSGIServer
 from threading import Thread
 import time
 import operator
@@ -144,8 +145,11 @@ tlu = Time Last Update
         lstWarningList = db.get_unconfirm_warning()          
         return render_template("warning.html", lstWarningList = lstWarningList,
                                )
-
-    app.run(debug=False, use_reloader=False, host='127.0.0.1', port=5000)
+    #FLASK_APP = myapp.py
+    #FLASK_ENV = development
+    WSGIServer(('0.0.0.0', 5000), app).serve_forever()
+    #FLASK_ENV=development
+    #app.run(debug=False, use_reloader=False, host='127.0.0.1', port=5000)
 
 
 def stopping_web(intSec):
