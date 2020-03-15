@@ -1,1 +1,0 @@
-pyinstaller -F --add-data="templates\monitor.html;templates" --add-data="templates\warning.html;templates"  --add-data="static\bootstrap.css;static" --add-data="static\index.css;static" --add-data="static\JQuery.js;static"  Main.py 

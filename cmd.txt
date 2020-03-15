@@ -1,4 +1,0 @@
-vpd
-mirror
-conmgr status
-
