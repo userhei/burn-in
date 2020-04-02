@@ -124,101 +124,6 @@ class FTPConn(object):
             self._Connection.quit()
             self._Connection = None
 
-
-class SSHConn(object):
-    def __init__(self, host, port, username, password, timeout):
-        self._host = host
-        self._port = port
-        self._timeout = timeout
-        self._username = username
-        self._password = password
-        self.SSHConnection = None
-        self._sftp = None
-        self.ssh_connect()
-
-    def _connect(self):
-        try:
-            objSSHClient = paramiko.SSHClient()
-            objSSHClient.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            objSSHClient.connect(self._host, port=self._port,
-                                 username=self._username,
-                                 password=self._password,
-                                 timeout=self._timeout)
-            self.SSHConnection = objSSHClient
-        except:
-            pass
-
-        
-
-    # def download(self, remotepath, localpath):
-    #     def _download():
-    #         if self._sftp is None:
-    #             self._sftp = self.SSHConnection.open_sftp()
-    #         self._sftp.get(remotepath, localpath)
-    #     try:
-    #         _download()
-    #     except AttributeError as E:
-    #         print(__name__, E)
-    #         print('Download Failed,Not Connect to {}'.format(self._host))
-    #         return None
-    #     else:
-    #         print(__name__, E)
-    #         print('Download Failed ...')
-
-    # def upload(self, localpath, remotepath):
-    #     def _upload():
-    #         if self._sftp is None:
-    #             self._sftp = self.SSHConnection.open_sftp()
-    #         self._sftp.put(localpath, remotepath)
-    #     try:
-    #         _upload()
-    #     except AttributeError as E:
-    #         print(__name__, E)
-    #         print('Upload Failed,Not Connect to {}'.format(self._host))
-    #         return None
-    #     else:
-    #         print(__name__, E)
-    #         print('Upload Failed ...')
-
-    def ssh_connect(self):
-        self._connect()
-        if not self.SSHConnection:
-            print('Connect retry for SAN switch "%s" ...' % self._host)
-            self._connect()
-
-
-    def exctCMD(self, command):
-        def GetRusult():
-            stdin, stdout, stderr = self.SSHConnection.exec_command(command)
-            data = stdout.read()
-            if len(data) > 0:
-                # print(data.strip())
-                return data
-            err = stderr.read()
-            if len(err) > 0:
-                print('''Excute command "{}" failed on "{}" with error:
-    "{}"'''.format(command, self._host, err.strip()))
-
-        def _return(strResult):
-            if strResult:
-                return strResult
-            # else:
-            #     s.ShowErr(self.__class__.__name__,
-            #               sys._getframe().f_code.co_name,
-            #               'Execute Command "{}" Failed with Error:'.format(
-            #                   self._host),
-            #               E)
-
-        if self.SSHConnection:
-            output = _return(GetRusult())
-            if output:
-                return output
-
-    def close(self):
-        if self.ssh_connect:
-            self.ssh_connect.close()
-
-
 class HAAPConn(object):
     def __init__(self, strIP, intPort, strPWD, intTO):
         self._host = strIP
@@ -226,7 +131,7 @@ class HAAPConn(object):
         self._password = strPWD
         self._timeout = intTO
         self._strLoginPrompt = 'Enter password'
-        self._strMainMenuPrompt = 'Coredump Menu'
+        self._strMainMenuPrompt = 'HA-AP'
         self._strCLIPrompt = 'CLI>'
         self._strAHPrompt = 'AH_CLI>'
         self._strCLIConflict = 'Another session owns the CLI'
