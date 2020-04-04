@@ -67,9 +67,27 @@ def receive(message_output,
 
 def config_target(IP_Entered,license,version,speed,solid_args):
 
-    objEngine = ActionOldVersion(IP_Entered, telnet_port, passwd, FTP_port, 1.5, version, solid_args)
-    
+    solid_args[0].insert('insert','1. Connecting to Engine %s' % IP_Entered)
+    objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
+    solid_args[0].insert('insert','1. Start Changing FW')
     objEngine.change_FW(firmware_file_name)
+    solid_args[0].insert('insert','1. Start Restor Factory Default')
+    objEngine.factory_default()
+    solid_args[0].insert('insert','1. Start Changing FW')
+    objEngine.factory_default(ip_engine_target)
+    del objEngine
+
+    solid_args[0].insert('insert','1. Connecting to Engine %s' % ip_engine_target)
+    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    objEngine.install_license(license)
+    objEngine.change_UID()
+    objEngine.shutdown_behaviour()
+    objEngine.change_FC_mode()
+    objEngine.change_FC_speed(,speed)
+    objEngine.sync_time()
+    objEngine.create_fake_drive()
+    objEngine.mirror_and_mapping()
+    objEngine.show_mirror_and_mappting()
 
     change_firmware(IP_Entered,version,solid_args)
     factory_default(IP_Entered,solid_args)
@@ -149,25 +167,25 @@ def periodically_check(ip):
     Action(ip, telnet_port, passwd, FTP_port).periodic_check(
         lstPCCommand, strPCFolder, PCFile_name)
 
-class ActionOldVersion(Action):
-    """docstring for ActionOldVersion"""
-    def __init__(self, strIP, intTNPort, strPassword,
-                 intFTPPort, version, solid_args, intTimeout=1.5):
-        super().__init__(self, strIP, intTNPort, strPassword,
-                 intFTPPort, intTimeout)
-        if version == 'vicom':
-            self._FTP_username = 'vicomftp'
-        elif version == 'vicom':
-            self._FTP_username = 'ftpadmin'
-        self.solid_args = solid_args
+# class ActionOldVersion(Action):
+#     """docstring for ActionOldVersion"""
+#     def __init__(self, strIP, intTNPort, strPassword,
+#                  intFTPPort, version, solid_args, intTimeout=1.5):
+#         super().__init__(self, strIP, intTNPort, strPassword,
+#                  intFTPPort, intTimeout)
+#         if version == 'vicom':
+#             self._FTP_username = 'vicomftp'
+#         elif version == 'vicom':
+#             self._FTP_username = 'ftpadmin'
+#         self.solid_args = solid_args
 
-#rewrite function _FTP_connect with alterable FTP username
-    def _FTP_connect(self):
-        self._FTP_Conn = conn.FTPConn(self._host,
-                                      self._FTPport,
-                                      self._FTP_username,
-                                      self._password,
-                                      self._timeout)
+# #rewrite function _FTP_connect with alterable FTP username
+#     def _FTP_connect(self):
+#         self._FTP_Conn = conn.FTPConn(self._host,
+#                                       self._FTPport,
+#                                       self._FTP_username,
+#                                       self._password,
+#                                       self._timeout)
         
 
 
@@ -183,12 +201,28 @@ st
     '''
 
     def __init__(self, strIP, intTNPort, strPassword,
-                 intFTPPort, intTimeout=1.5):
+                 intFTPPort, version, solid_args, intTimeout=1.5):
         self._host = strIP
         self._TNport = intTNPort
         self._FTPport = intFTPPort
         self._password = strPassword
         self._timeout = intTimeout
+        self.message_output = solid_args[0]
+        self.obj_light_telnet = solid_args[1]
+        self.instance_light_telnet = solid_args[2]
+        self.obj_light_FTP = solid_args[3]
+        self.instance_light_FTP = solid_args[4]
+        if version == 'vicom':
+            self._FTP_username = 'vicomftp'
+        elif version == 'vicom':
+            self._FTP_username = 'ftpadmin'
+        else:
+            self.message_output.insert('insert', 'Please selete the right version')
+        self.message_output = solid_args[0]
+        self.obj_light_telnet = solid_args[1]
+        self.instance_light_telnet = solid_args[2]
+        self.obj_light_FTP = solid_args[3]
+        self.instance_light_FTP = solid_args[4]
         self._TN_Conn = None
         self._FTP_Conn = None
         self._TN_Connect_Status = None
@@ -211,7 +245,7 @@ st
     def _FTP_connect(self):
         self._FTP_Conn = conn.FTPConn(self._host,
                                       self._FTPport,
-                                      'adminftp',
+                                      self._FTP_username,
                                       self._password,
                                       self._timeout)
 
@@ -230,6 +264,39 @@ st
         connFTP.PutFile('/mbflash', './', 'fwimage', strFWFile)
         print('FW upgrade completed for {}, waiting for reboot...'.format(
             self._host))
+
+    def factory_default():
+        pass
+
+    def change_ip_address():
+        pass
+
+    def install_license():
+        pass
+
+    def change_UID():
+        pass
+
+    def shutdown_behaviour():
+        pass
+
+    def change_FC_mode():
+        pass
+
+    def change_fC_speed():
+        pass
+
+    def sync_time():
+        pass
+
+    def create_fake_drive():
+        pass
+
+    def mirror_and_mapping():
+        pass
+
+    def show_mirror_and_mappting():
+        pass
 
     @s.deco_Exception
     def auto_commands(self, strCMDFile):
