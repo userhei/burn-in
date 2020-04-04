@@ -28,6 +28,40 @@ lstPCCommand = ['vpd',
                 'sfp all']
 # <<<Get Config Field>>>
 
+def receive(message_output,
+        light_obj_telnet,
+        light_telnet,
+        light_obj_FTP,
+        light_FTP,
+        mode,
+        ip_engine_target,
+        ip_engine_initiator,
+        string_license,
+        ):
+    if mode == 'target':
+        message_output.insert('insert',(ip_engine_target,
+        string_license))
+    if mode == 'initiator':
+        message_output.insert('insert',(ip_engine_initiator,
+        string_license))
+        for i in range(10):
+            chg_light_to_green(light_obj_telnet,light_telnet)
+            time.sleep(0.5)
+            chg_light_to_red(light_obj_telnet,light_telnet)
+            time.sleep(0.5)
+
+
+
+
+
+def chg_light_to_green(obj,instance):
+    obj.itemconfig(instance,fill='green')
+
+def chg_light_to_red(obj,instance):
+    obj.itemconfig(instance,fill='red')
+
+
+
 def test(objMSG):
     for i in range(1,10):
         objMSG.insert('insert','now %d' % i)

@@ -10,32 +10,27 @@ import Implement as fct
 ### function called by GUI
 ip_engine_target = '10.203.1.175' 
 ip_engine_initiator = '10.203.1.176' 
+string_license = 'xxx.xxx.xxx'
 
 
     # for i in range(1,10):
     #     mo.insert('insert','now xx\n')
     #     time.sleep(1)
 
-def start_with_threading(func,arg):
-    threading.Thread(target = func, args=(arg,)).start()
+def start_with_threading(func,args):
+    threading.Thread(target=func, args=args).start()
 
-def config_target(mo):
-    fct.test(message_output)
-
-def config_initiator():
-    pass
-
-def start_test():
-    pass
-
-def get_status():
-    pass
-
-def get_result():
-    pass
-
-def reset_default():
-    pass
+def transfer(mode, ip_engine_target, ip_engine_initiator, string_license):
+    fct.receive(message_output,
+        light_obj_telnet,
+        light_telnet,
+        light_obj_FTP,
+        light_FTP,
+        mode,
+        ip_engine_target,
+        ip_engine_initiator,
+        string_license,
+        )
 
 ### GUI
 #Main Window
@@ -62,15 +57,14 @@ entry_IP = Entry(frame_IP,textvariable = IP_Entered,width = 24)
 entry_IP.pack(side = LEFT)
 
 #Telnet Light & FTP Light
-telnet_stats = Canvas(frame_IP,width = 40,height = 40)
-light_color = 'red' 
-light = telnet_stats.create_oval(14,14,26,26,fill=light_color,tags = 'light')
-telnet_stats.pack(side = LEFT)
+light_obj_telnet = Canvas(frame_IP,width = 40,height = 40)
+light_telnet = light_obj_telnet.create_oval(14,14,26,26,fill='red',tags = 'light_telnet')
+light_obj_telnet.pack(side = LEFT)
 
-FTP_status = Canvas(frame_IP,width = 40,height =40)
-light_color = 'green' 
-light = FTP_status.create_oval(14,14,26,26,fill=light_color,tags = 'light')
-FTP_status.pack(side = LEFT)
+
+light_obj_FTP = Canvas(frame_IP,width = 40,height =40)
+light_FTP = light_obj_FTP.create_oval(14,14,26,26,fill='green',tags = 'light_FTP')
+light_obj_FTP.pack(side = LEFT)
 
 licen_var = StringVar()
 frame_licen = Frame(GUI,width = 560,height = 40)
@@ -107,9 +101,9 @@ rb_vicom.pack(side = LEFT)
 
 frame_operation = Frame(GUI,width = 360,height = 40)
 frame_operation.pack(pady = 10)
-b_config_T = Button(frame_operation, text="T mode",command=lambda :start_with_threading(config_target,message_output), width=5,height=3)
+b_config_T = Button(frame_operation, text="T mode",command=lambda :start_with_threading(transfer,('target', ip_engine_target, string_license)), width=5,height=3)
 b_config_T.pack(side = LEFT)
-b_config_I = Button(frame_operation, text="I mode",command='', width=5,height=3)
+b_config_I = Button(frame_operation, text="I mode",command=lambda :start_with_threading(transfer,('initiator', ip_engine_initiator, string_license)), width=5,height=3)
 b_config_I.pack(side = LEFT,padx = 1)
 b_start = Button(frame_operation, text="start",command = '', width=5,height=3)
 b_start.pack(side = LEFT,padx = 1)
