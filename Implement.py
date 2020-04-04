@@ -18,6 +18,7 @@ telnet_port = 23
 FTP_port = 21
 passwd = 'password'
 trace_level_cfg = 2
+firmware_file_name = 'fw.bin'
 
 strTraceFolder = 'Trace'
 strPCFolder = 'Current_Config'
@@ -65,6 +66,11 @@ def receive(message_output,
         pass
 
 def config_target(IP_Entered,license,version,speed,solid_args):
+
+    objEngine = ActionOldVersion(IP_Entered, telnet_port, passwd, FTP_port, 1.5, version, solid_args)
+    
+    objEngine.change_FW(firmware_file_name)
+
     change_firmware(IP_Entered,version,solid_args)
     factory_default(IP_Entered,solid_args)
     change_ip_address(IP_Entered,ip_engine_target)
@@ -78,13 +84,7 @@ def config_target(IP_Entered,license,version,speed,solid_args):
     mirror_and_mapping(ip_engine_target)
 
 
-def test(objMSG):
-    for i in range(1,10):
-        objMSG.insert('insert','now %d' % i)
-        time.sleep(1)
-
-
-def change_firmware(ip, fw_file):
+def change_firmware(ip, version, fw_file):
     Action(ip, telnet_port, passwd, FTP_port).change_FW(fw_file)
 
 
@@ -149,7 +149,26 @@ def periodically_check(ip):
     Action(ip, telnet_port, passwd, FTP_port).periodic_check(
         lstPCCommand, strPCFolder, PCFile_name)
 
+class ActionOldVersion(Action):
+    """docstring for ActionOldVersion"""
+    def __init__(self, strIP, intTNPort, strPassword,
+                 intFTPPort, version, solid_args, intTimeout=1.5):
+        super().__init__(self, strIP, intTNPort, strPassword,
+                 intFTPPort, intTimeout)
+        if version == 'vicom':
+            self._FTP_username = 'vicomftp'
+        elif version == 'vicom':
+            self._FTP_username = 'ftpadmin'
+        self.solid_args = solid_args
 
+#rewrite function _FTP_connect with alterable FTP username
+    def _FTP_connect(self):
+        self._FTP_Conn = conn.FTPConn(self._host,
+                                      self._FTPport,
+                                      self._FTP_username,
+                                      self._password,
+                                      self._timeout)
+        
 
 
 class Action():
