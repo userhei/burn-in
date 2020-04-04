@@ -6,30 +6,27 @@ import threading
 from ScrolledText import ScrolledText
 import Implement as fct
 
+#Some default value
 
-### function called by GUI
-ip_engine_target = '10.203.1.175' 
-ip_engine_initiator = '10.203.1.176' 
 string_license = 'xxx.xxx.xxx'
 
+### function called by GUI
 
-    # for i in range(1,10):
-    #     mo.insert('insert','now xx\n')
-    #     time.sleep(1)
 
 def start_with_threading(func,args):
     threading.Thread(target=func, args=args).start()
 
-def transfer(mode, ip_engine_target, ip_engine_initiator, string_license):
+def transfer(mode, ip, license):
     fct.receive(message_output,
         light_obj_telnet,
         light_telnet,
         light_obj_FTP,
         light_FTP,
         mode,
-        ip_engine_target,
-        ip_engine_initiator,
-        string_license,
+        IP_Entered,
+        license,
+        version,
+        speed
         )
 
 ### GUI

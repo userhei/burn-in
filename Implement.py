@@ -11,6 +11,9 @@ from collections import OrderedDict as odd
 
 # <<<Get Config Field>>>
 
+ip_engine_target = '10.203.1.175' 
+ip_engine_initiator = '10.203.1.176' 
+
 telnet_port = 23
 FTP_port = 21
 passwd = 'password'
@@ -34,13 +37,15 @@ def receive(message_output,
         light_obj_FTP,
         light_FTP,
         mode,
-        ip_engine_target,
-        ip_engine_initiator,
-        string_license,
+        IP_Entered,
+        license,
+        version,
+        speed
         ):
+    solid_args = (message_output, light_obj_telnet, light_telnet, light_obj_FTP, light_FTP)
     if mode == 'target':
-        message_output.insert('insert',(ip_engine_target,
-        string_license))
+        config_target(IP_Entered,license,version,speed,solid_args)
+
     if mode == 'initiator':
         message_output.insert('insert',(ip_engine_initiator,
         string_license))
@@ -50,16 +55,27 @@ def receive(message_output,
             chg_light_to_red(light_obj_telnet,light_telnet)
             time.sleep(0.5)
 
+    if mode == 'start':
+        pass
+    if mode == 'status':
+        pass
+    if mode == 'result':
+        pass
+    if mode == 'reset':
+        pass
 
-
-
-
-def chg_light_to_green(obj,instance):
-    obj.itemconfig(instance,fill='green')
-
-def chg_light_to_red(obj,instance):
-    obj.itemconfig(instance,fill='red')
-
+def config_target(IP_Entered,license,version,speed,solid_args):
+    change_firmware(IP_Entered,version,solid_args)
+    factory_default(IP_Entered,solid_args)
+    change_ip_address(IP_Entered,ip_engine_target)
+    install_license(ip_engine_target,license)
+    change_UID(ip_engine_target)
+    shutdown_behaviour(ip_engine_target)
+    change_FC_mode(ip_engine_target)
+    change_FC_speed(ip_engine_target,speed)
+    sync_time(ip_engine_target)
+    create_fake_drive(ip_engine_target)
+    mirror_and_mapping(ip_engine_target)
 
 
 def test(objMSG):
