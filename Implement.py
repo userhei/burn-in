@@ -28,7 +28,10 @@ lstPCCommand = ['vpd',
                 'sfp all']
 # <<<Get Config Field>>>
 
-
+def test(objMSG):
+    for i in range(1,10):
+        objMSG.insert('insert','now %d' % i)
+        time.sleep(1)
 
 
 def change_firmware(ip, fw_file):
