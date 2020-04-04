@@ -29,6 +29,22 @@ oddHAAPErrorDict = setting.oddRegularTrace()
 # <<<Get Config Field>>>
 
 
+# Change color of light.
+def chg_light_to_green(obj,instance):
+    obj.itemconfig(instance,fill='green')
+
+def chg_light_to_red(obj,instance):
+    obj.itemconfig(instance,fill='red')
+
+
+
+
+
+
+
+
+
+
 def deco_OutFromFolder(func):
     strOriFolder = os.getcwd()
 

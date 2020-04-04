@@ -130,11 +130,11 @@ class HAAPConn(object):
         self._port = intPort
         self._password = strPWD
         self._timeout = intTO
-        self._strLoginPrompt = 'Enter password'
-        self._strMainMenuPrompt = 'HA-AP'
-        self._strCLIPrompt = 'CLI>'
-        self._strAHPrompt = 'AH_CLI>'
-        self._strCLIConflict = 'Another session owns the CLI'
+        self._strLoginPrompt = 'Enter password'.encode(encoding="utf-8")
+        self._strMainPrompt = 'HA-AP'.encode(encoding="utf-8")
+        self._strCLIPrompt = 'CLI>'.encode(encoding="utf-8")
+        self._strAHPrompt = 'AH_CLI>'.encode(encoding="utf-8")
+        self._strCLIConflict = 'Another session owns the CLI'.encode(encoding="utf-8")
         self.Connection = None
         self.telnet_connect()
 
@@ -185,45 +185,74 @@ class HAAPConn(object):
             else:
                 return 0
 
-    def exctCMD(self, strCommand):
-        CLI = self._strCLIPrompt.encode(encoding="utf-8")
-        CLI_Conflict = self._strCLIConflict.encode(encoding="utf-8")
+    def go_to_main_menu(self):
+        if self.Connection.write(b'\r'):
+            output = self.Connection.read_until(self._strMainPrompt, timeout=1)
+            if self._strCLIPrompt in output:
+                self.Connection.write(b'exit')
+                if self._strMainPrompt in self.Connection.read_until(
+                    self._strMainPrompt, timeout=1):
+                    pass
+            elif self._strMainPrompt in output:
+                pass
 
-        def get_result():
+    def go_to_CLI():
+        if self.Connection.write(b'\r'):
+            output = self.Connection.read_until(self._strCLIPrompt, timeout=1)
+            if self._strCLIPrompt in output:
+                pass
+            elif self._strMainPrompt in output:
+                self.Connection.write('7')
+                str7Output = self.Connection.read_until(self._strCLIPrompt, timeout=1)
+                if self._strCLIPrompt in str7Output:
+                    pass
+                elif self._strCLIConflict in str7Output:
+                    self.Connection.write('y')
+                    strConfirmCLI = self.Connection.read_until(self._strCLIPrompt, timeout=1)
+                    if self._strCLIPrompt in strConfirmCLI:
+                        pass
+
+    def change_ip_address(new_ip_address):
+        self.go_to_main_menu()
+        self.Connection.write('6')
+        self.Connection.read_until('interface'.encode(encoding="utf-8"), timeout = 2)
+        time.sleep(0.2)
+        self.Connection.write('e')
+        time.sleep(0.2)
+        self.Connection.write('a')
+        self.Connection.read_until('new IP'.encode(encoding="utf-8"), timeout = 2)
+        time.sleep(0.2)
+        self.Connection.write(new_ip_address)
+        self.Connection.write('\r')
+        time.sleep(0.2)
+        self.Connection.write('\r')
+        time.sleep(0.2)
+        self.Connection.read_until('<Enter> = done'.encode(encoding="utf-8"), timeout = 2)
+        self.Connection.write('\r')
+        time.sleep(0.5)
+        try:
+            self.Connection.read_until('Coredump'.encode(encoding="utf-8"), timeout = 2)
+            self.Connection.write('b')
+            self.Connection.read_until('Reboot'.encode(encoding="utf-8"), timeout = 1)
+            time.sleep(0.4)
+            self.Connection.write('y')
+            print('Rebooting engine, Please waiting...')
+            for i in range(15):
+                print('.')
+                time.sleep(1)
+        except Exception as E:
+            print('No need to reboot')
+        self.Connection.close()    
+
+    def exctCMD(self, strCommand):
+        if self.Connection:
+            self.go_to_CLI()
             self.Connection.write(
-                strCommand.encode(encoding="utf-8") + b'\r')
+                    strCommand.encode(encoding="utf-8") + b'\r')
             strResult = str(self.Connection.read_until(
                 CLI, timeout=2).decode())
             if self._strCLIPrompt in strResult:
                 return strResult
-
-        def execute_at_CLI():
-            # Confirm is CLI or Not
-            if self.Connection:
-                self.Connection.write(b'\r')
-                strEnterOutput = self.Connection.read_until(CLI, timeout=1)
-
-                if CLI in strEnterOutput:
-                    return get_result()
-                elif 'HA-AP'.encode(encoding="utf-8") in strEnterOutput:
-                    self.Connection.write('7')
-                    str7Output = self.Connection.read_until(CLI, timeout=1)
-                    if CLI in str7Output:
-                        return get_result()
-                    elif CLI_Conflict in str7Output:
-                        self.Connection.write('y')
-                        strConfirmCLI = self.Connection.read_until(CLI, timeout=1)
-                        if CLI in strConfirmCLI:
-                            return get_result()
-
-        if self.Connection:
-            return execute_at_CLI()
-        # else:
-        #     if self._connect():
-        #         return execute_at_CLI()
-        #     else:
-        #         print('Please Check Telnet Connection to "{}" \n\n'.format(
-        #             self._host))
 
     def Close(self):
         if self.Connection:
@@ -231,7 +260,7 @@ class HAAPConn(object):
 
     connection = property(
         get_connection_status, doc="Get HAAPConn instance's connection")
-
+        
 
 if __name__ == '__main__':
 
