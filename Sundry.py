@@ -51,6 +51,9 @@ def sand_glass(seconds,obj_msg_out = None):
         if obj_msg_out:
             msg_out(obj_msg_out,'.')
         print('.',end = '')
+        time.sleep(1)
+    if obj_msg_out:
+        msg_out(obj_msg_out,'\n')
     print('\n')
 
 

@@ -7,11 +7,12 @@ import time
 import re
 import Conn as conn
 import Sundry as s
+import threading
 from collections import OrderedDict as odd
 
 # <<<Config Field>>>
 
-ip_engine_target = '10.203.1.175' 
+ip_engine_target = '10.203.1.177' 
 ip_engine_initiator = '10.203.1.176' 
 
 telnet_port = 23
@@ -70,7 +71,8 @@ def receive(message_output,
     if mode == 'reset':
         pass
 
-
+def start_with_threading(func,args):
+    threading.Thread(target=func, args=args).start()
 
 
 
@@ -78,33 +80,37 @@ def receive(message_output,
 def config_target(IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
 
-    s.msg_out(obj_msg_out,'0. Connecting to Engine %s \n' % IP_Entered)
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    s.msg_out(obj_msg_out,'0. Connected to Engine %s \n' % IP_Entered)
-
     s.msg_out(obj_msg_out,'  1. Start to Change FW\n')
     objEngine.change_FW(firmware_file_name)
     s.msg_out(obj_msg_out,'  1. Change FW Done, Rebooting...\n')
-    s.sand_glass(45)
+    del objEngine
+    s.sand_glass(45,obj_msg_out)
 
+
+    objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
     solid_args[0].insert('insert','  2. Start Restor Factory Default\n')
     objEngine.factory_default()
     solid_args[0].insert('insert','  2. Restor Factory Default Done, Rebooting...\n')
-    sandglass(20)
+    del objEngine
+    s.sand_glass(15,obj_msg_out)
 
+
+    objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
     solid_args[0].insert('insert','  3. Start Changing IP Address\n')
     objEngine.change_ip_address(ip_engine_target)
     solid_args[0].insert('insert','  3. Change IP Address Done, Rebooting...\n')
-    sandglass(15)
-
     del objEngine
-
-    s.msg_out(obj_msg_out,'0. Connecting to Engine %s' % ip_engine_target)
-    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    s.sand_glass(20,obj_msg_out)
     
-    s.msg_out(obj_msg_out,'  4. Start to Install License\n')
-    objEngine.install_license(license)
-    s.msg_out(obj_msg_out,'  4. Install License Done\n')
+
+
+    # s.msg_out(obj_msg_out,'0. Connecting to Engine %s' % ip_engine_target)
+    # objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    
+    # s.msg_out(obj_msg_out,'  4. Start to Install License\n')
+    # objEngine.install_license(license)
+    # s.msg_out(obj_msg_out,'  4. Install License Done\n')
 
     # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
     # objEngine.change_UID()
@@ -180,6 +186,7 @@ st
         self._host = strIP
         self._TNport = intTNPort
         self._FTPport = intFTPPort
+        self._FTP_username = self.get_ftp_username(version)
         self._password = strPassword
         self._timeout = intTimeout
 
@@ -190,12 +197,6 @@ st
         self.obj_light_FTP = solid_args[3]
         self.instance_light_FTP = solid_args[4]
 
-        # version determines the value of FTP username
-        if version == 'vicom':
-            self._FTP_username = 'vicomftp'
-        elif version == 'vicom':
-            self._FTP_username = 'ftpadmin'
-
         self._TN_Conn = None
         self._FTP_Conn = None
         self._TN_Connect_Status = None
@@ -203,15 +204,24 @@ st
         self.AHStatus = self._TN_Conn.is_AH()
         self.strVPD = self._executeCMD('vpd')
 
-    def _output_to_window(self, msg):
-        self.message_output.insert('insert',msg)
+    # version determines the value of FTP username
+    def get_ftp_username(self, version):
+        if version == 'loxoll':
+            return 'adminftp'
+        elif version == 'vicom':
+            return 'ftpvicom'
 
     def _telnet_connect(self):
+        s.msg_out(self.message_output,'0. Telnet Connecting to %s ...\n' % self._host)
         self._TN_Conn = conn.HAAPConn(self._host,
                                       self._TNport,
                                       self._password,
                                       self._timeout)
         self._TN_Connect_Status = self._TN_Conn.get_connection_status()
+        if self._TN_Connect_Status:
+            s.msg_out(self.message_output, '0. Telnet Connected to %s.\n' % self._host)
+        else:
+            s.msg_out(self.message_output, '0. Telnet Connect to %s Failed!!!\n' % self._host)
 
     @s.deco_Exception
     def _executeCMD(self, cmd):
@@ -226,11 +236,16 @@ st
                                       self._timeout)
 
     def _ftp(self):
+        s.msg_out(self.message_output, '0. FTP Connecting to %s ...\n' % self._host)
         if self._FTP_Conn:
             connFTP = self._FTP_Conn
         else:
             self._FTP_connect()
             connFTP = self._FTP_Conn
+        if connFTP:
+            s.msg_out(self.message_output, '0. FTP Connected to %s.\n' % self._host)
+        else:
+            s.msg_out(self.message_output, '0. FTP Connect to %s Failed!!!\n' % self._host)
         return connFTP
 
     def _telnet_write(self, str, time_out):
@@ -239,62 +254,45 @@ st
         time.sleep(time_out)
 
 
-    @s.deco_Exception
+    # @s.deco_Exception
     def change_FW(self, strFWFile):
         connFTP = self._ftp()
         time.sleep(0.25)
         connFTP.PutFile('/mbflash', './', 'fwimage', strFWFile)
-        self._output_to_window(
-            '    Rebooting Engine %s to change firmware, Wait for 45 seconds\n' % self._host)
         print('FW upgrade completed for {}, waiting for reboot...'.format(
             self._host))
-        for i in range(45):
-            print('. ')
-            self._output_to_window('. ')
-        print('\n')
-        self._output_to_window('\n')
 
-    def factory_default():
+    def factory_default(self):
         if self._TN_Conn.go_to_main_menu():
-            self._TN_Conn.Connection.write('f')
+            self._telnet_write('f', 0.1)
             self._TN_Conn.Connection.read_until('Reset'.encode(encoding="utf-8"), timeout = 1)
             time.sleep(0.25)
-            self._TN_Conn.Connection.write('y')
-            time.sleep(0.25)
-            self._TN_Conn.Connection.write('y')
-            time.sleep(0.25)
-            self._TN_Conn.Connection.write('y')
-            print('Engine reset successful, waiting for reboot...about 30s')
+            self._telnet_write('y', 0.1)
+            self._telnet_write('y', 0.1)
+            self._telnet_write('y', 0.1)
+            print('Engine reset successful, waiting for reboot...about 20s\n')
 
     def change_ip_address(self, new_ip_address):
+        s.msg_out(self.message_output,'    2.1 changing IP from "%s" to "%s" ...' % (self._host, new_ip_address))
         if self._TN_Conn.go_to_main_menu():
-    #         self._TN_Conn.change_ip_address(new_ip_address)
-
-    # def change_ip_address(self, new_ip_address):
-    #     if self.go_to_main_menu():
-            self._TN_Conn.Connection.write('6'.encode(encoding="utf-8"))
+            self._telnet_write('6', 0.1)
             self._TN_Conn.Connection.read_until(s.encode_utf8('interface'), timeout = 2)
             time.sleep(0.2)
             self._telnet_write('e', 0.1)
             self._telnet_write('a', 0.1)
             self._TN_Conn.Connection.read_until(s.encode_utf8('new IP'), timeout = 2)
-            time.sleep(0.2)
-            self._TN_Conn.Connection.write(s.encode_utf8('new_ip_address'))
-            self._TN_Conn.Connection.write('\r'.encode(encoding="utf-8"))
-            time.sleep(0.2)
-            self._TN_Conn.Connection.write(s.encode_utf8('\r'))
-            time.sleep(0.2)
+            self._telnet_write(new_ip_address, 0.1)
+            self._telnet_write('\r', 0.1)
+            self._telnet_write('\r', 0.1)
+
             self._TN_Conn.Connection.read_until('<Enter> = done'.encode(encoding="utf-8"), timeout = 2)
-            self._TN_Conn.Connection.write('\r'.encode(encoding="utf-8"))
-            time.sleep(0.5)
+            self._telnet_write('\r', 0.1)
             # try:
             self._TN_Conn.Connection.read_until(s.encode_utf8('Coredump'), timeout = 2)
             self._TN_Conn.Connection.write(s.encode_utf8('b'))
             self._TN_Conn.Connection.read_until(s.encode_utf8('Reboot'), timeout = 1)
             time.sleep(0.4)
             self._TN_Conn.Connection.write(s.encode_utf8('y'))
-            print('Rebooting engine, Please waiting...\n')
-            s.sand_glass(45,self.message_output)
 
     def install_license():
         pass
@@ -323,7 +321,7 @@ st
     def show_mirror_and_mappting():
         pass
 
-    @s.deco_Exception
+    # @s.deco_Exception
     def auto_commands(self, strCMDFile):
         tn = self._TN_Conn
         if self.AHStatus:
@@ -499,6 +497,21 @@ st
             return resultFW.group().replace('Firmware ', '')
         else:
             print('Get firmware version failed for engine "%s"' % self._host)
+
+
+class a(object):
+    """docstring for a"""
+    def __init__(self, arg):
+        super(a, self).__init__()
+        self.arg = arg
+    def insert(a,b):
+        print(a,b)
+
+solid_args = (a,a,a,a,a)
+        
+w = Action('10.203.1.175', 23, 'password',
+                 21, 'loxoll', solid_args, intTimeout=1.5)
+w.change_ip_address('10.203.1.177')
 
 if __name__ == '__main__':
 

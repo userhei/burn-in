@@ -142,7 +142,6 @@ class HAAPConn(object):
 
     def _connect(self):
         # try:
-            
         objTelnetConnect = telnetlib.Telnet(self._host, self._port, self._timeout)
         objTelnetConnect.read_until(
             self._strLoginPrompt, timeout=1)
@@ -191,7 +190,7 @@ class HAAPConn(object):
 
     def go_to_main_menu(self):
         self.Connection.write(b'\r')
-        output = self.Connection.read_until(self._strMainPrompt, timeout=1)
+        output = self.Connection.read_until(self._strMainPrompt, timeout=2)
         if self._strCLIPrompt in output:
             self.Connection.write(b'exit')
             if self._strMainPrompt in self.Connection.read_until(

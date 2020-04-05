@@ -87,15 +87,15 @@ rb_4G = Radiobutton(frame_port_spee, variable = speed,text='4G', value='4')
 rb_4G.pack(side = LEFT)
 
 #Version Entered
-version = IntVar()
-version.set(1)
+version = StringVar()
+version.set('loxoll')
 frame_version_select = Frame(GUI,width = 560,height = 40)
 frame_version_select.pack(pady = 6)
 label_version_select = Label(frame_version_select,text = 'version', width = 6, height = 2)
 label_version_select.pack(side = LEFT)
-rb_loxoll = Radiobutton(frame_version_select,variable = version, text='Loxoll', value=1)
+rb_loxoll = Radiobutton(frame_version_select,variable = version, text='Loxoll', value='loxoll')
 rb_loxoll.pack(side = LEFT)
-rb_vicom = Radiobutton(frame_version_select,variable = version,text='Vicom', value=2)
+rb_vicom = Radiobutton(frame_version_select,variable = version,text='Vicom', value='vicom')
 rb_vicom.pack(side = LEFT)
 
 #Opration Buttons
