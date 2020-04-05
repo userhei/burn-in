@@ -228,6 +228,9 @@ st
         self.AHStatus = self._TN_Conn.is_AH()
         self.strVPD = self._executeCMD('vpd')
 
+    def _output_to_window(self, msg):
+        self.message_output.insert('insert',msg)
+
     def _telnet_connect(self):
         self._TN_Conn = conn.HAAPConn(self._host,
                                       self._TNport,
@@ -260,44 +263,23 @@ st
         connFTP = self._ftp()
         time.sleep(0.25)
         connFTP.PutFile('/mbflash', './', 'fwimage', strFWFile)
+        self._output_to_window(
+            '    Rebooting Engine %s to change firmware, Wait for 45 seconds\n' % self._host)
         print('FW upgrade completed for {}, waiting for reboot...'.format(
             self._host))
+        for i in range(45):
+            print('. ')
+            self._output_to_window('. ')
+        print('\n')
+        self._output_to_window('\n')
 
     def factory_default():
-        self._TN_Conn.go_to_main_menu()
-        self.
+        pass
 
-    def change_ip_address():
-
-        self.tel.write('6')
-        self.tel.read_until('interface'.encode(encoding="utf-8"), timeout = 2)
-        time.sleep(0.2)
-        self.tel.write('e')
-        time.sleep(0.2)
-        self.tel.write('a')
-        self.tel.read_until('new IP'.encode(encoding="utf-8"), timeout = 2)
-        time.sleep(0.2)
-        if mode == 1:
-            self.tel.write(enT_now_IP)
-        else:
-            self.tel.write(enI_now_IP)
-        self.tel.write('\r')
-        time.sleep(0.2)
-        self.tel.write('\r')
-        time.sleep(0.2)
-        self.tel.read_until('<Enter> = done'.encode(encoding="utf-8"), timeout = 2)
-        self.tel.write('\r')
-        time.sleep(1)
-        try:
-            self.tel.read_until('Coredump'.encode(encoding="utf-8"), timeout = 2)
-            self.tel.write('b')
-            self.tel.read_until('Reboot'.encode(encoding="utf-8"), timeout = 1)
-            time.sleep(1)
-            self.tel.write('y')
-            time.sleep(15)
-        except Exception as E:
-            print('No need to reboot')
-        self.tel.close()    
+    def change_ip_address(self, new_ip_address):
+        if self._TN_Conn.go_to_main_menu():
+            self._TN_Conn.change_ip_address(new_ip_address)
+          
 
     def install_license():
         pass

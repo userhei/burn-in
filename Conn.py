@@ -192,57 +192,57 @@ class HAAPConn(object):
                 self.Connection.write(b'exit')
                 if self._strMainPrompt in self.Connection.read_until(
                     self._strMainPrompt, timeout=1):
-                    pass
+                    return True
             elif self._strMainPrompt in output:
-                pass
+                return True
 
     def go_to_CLI():
         if self.Connection.write(b'\r'):
             output = self.Connection.read_until(self._strCLIPrompt, timeout=1)
             if self._strCLIPrompt in output:
-                pass
+                return True
             elif self._strMainPrompt in output:
                 self.Connection.write('7')
                 str7Output = self.Connection.read_until(self._strCLIPrompt, timeout=1)
                 if self._strCLIPrompt in str7Output:
-                    pass
+                    return True
                 elif self._strCLIConflict in str7Output:
                     self.Connection.write('y')
                     strConfirmCLI = self.Connection.read_until(self._strCLIPrompt, timeout=1)
                     if self._strCLIPrompt in strConfirmCLI:
-                        pass
+                        return True
 
     def change_ip_address(new_ip_address):
-        self.go_to_main_menu()
-        self.Connection.write('6')
-        self.Connection.read_until('interface'.encode(encoding="utf-8"), timeout = 2)
-        time.sleep(0.2)
-        self.Connection.write('e')
-        time.sleep(0.2)
-        self.Connection.write('a')
-        self.Connection.read_until('new IP'.encode(encoding="utf-8"), timeout = 2)
-        time.sleep(0.2)
-        self.Connection.write(new_ip_address)
-        self.Connection.write('\r')
-        time.sleep(0.2)
-        self.Connection.write('\r')
-        time.sleep(0.2)
-        self.Connection.read_until('<Enter> = done'.encode(encoding="utf-8"), timeout = 2)
-        self.Connection.write('\r')
-        time.sleep(0.5)
-        try:
-            self.Connection.read_until('Coredump'.encode(encoding="utf-8"), timeout = 2)
-            self.Connection.write('b')
-            self.Connection.read_until('Reboot'.encode(encoding="utf-8"), timeout = 1)
-            time.sleep(0.4)
-            self.Connection.write('y')
-            print('Rebooting engine, Please waiting...')
-            for i in range(15):
-                print('.')
-                time.sleep(1)
-        except Exception as E:
-            print('No need to reboot')
-        self.Connection.close()    
+        if self.go_to_main_menu():
+            self.Connection.write('6')
+            self.Connection.read_until('interface'.encode(encoding="utf-8"), timeout = 2)
+            time.sleep(0.2)
+            self.Connection.write('e')
+            time.sleep(0.2)
+            self.Connection.write('a')
+            self.Connection.read_until('new IP'.encode(encoding="utf-8"), timeout = 2)
+            time.sleep(0.2)
+            self.Connection.write(new_ip_address)
+            self.Connection.write('\r')
+            time.sleep(0.2)
+            self.Connection.write('\r')
+            time.sleep(0.2)
+            self.Connection.read_until('<Enter> = done'.encode(encoding="utf-8"), timeout = 2)
+            self.Connection.write('\r')
+            time.sleep(0.5)
+            try:
+                self.Connection.read_until('Coredump'.encode(encoding="utf-8"), timeout = 2)
+                self.Connection.write('b')
+                self.Connection.read_until('Reboot'.encode(encoding="utf-8"), timeout = 1)
+                time.sleep(0.4)
+                self.Connection.write('y')
+                print('Rebooting engine, Please waiting...')
+                for i in range(15):
+                    print('.')
+                    time.sleep(1)
+            except Exception as E:
+                print('No need to reboot')
+            self.Connection.close()    
 
     def exctCMD(self, strCommand):
         if self.Connection:
