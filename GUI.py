@@ -63,6 +63,7 @@ light_obj_FTP = Canvas(frame_IP,width = 40,height =40)
 light_FTP = light_obj_FTP.create_oval(14,14,26,26,fill='green',tags = 'light_FTP')
 light_obj_FTP.pack(side = LEFT)
 
+#License Entered
 licen_var = StringVar()
 frame_licen = Frame(GUI,width = 560,height = 40)
 frame_licen.pack(pady = 5)
@@ -73,7 +74,7 @@ label_FWD_licen.pack(side = RIGHT)
 entry_FWD_licen = Entry(frame_licen,textvariable = licen_var,width = 36)
 entry_FWD_licen.pack(side = LEFT)
 
-
+#Speed Selection
 speed = StringVar()
 speed.set('8')
 frame_port_spee = Frame(GUI,width = 560,height = 40)
@@ -85,6 +86,7 @@ rb_8G.pack(side = LEFT)
 rb_4G = Radiobutton(frame_port_spee, variable = speed,text='4G', value='4')
 rb_4G.pack(side = LEFT)
 
+#Version Entered
 version = IntVar()
 version.set(1)
 frame_version_select = Frame(GUI,width = 560,height = 40)
@@ -96,6 +98,7 @@ rb_loxoll.pack(side = LEFT)
 rb_vicom = Radiobutton(frame_version_select,variable = version,text='Vicom', value=2)
 rb_vicom.pack(side = LEFT)
 
+#Opration Buttons
 frame_operation = Frame(GUI,width = 360,height = 40)
 frame_operation.pack(pady = 10)
 b_config_T = Button(frame_operation, text="T mode",command=lambda :start_with_threading(transfer,('target',)), width=5,height=3)
@@ -111,6 +114,7 @@ b_result.pack(side = LEFT,padx = 1)
 b_reset = Button(frame_operation, text="reset",command = '', width=5,height=3)
 b_reset.pack(side = LEFT,padx = 1)
 
+#Message Output Window
 message_output = scrolledtext.ScrolledText(GUI, width=72, height=24, bg = 'gray')
 message_output.pack(pady = 6)
 
