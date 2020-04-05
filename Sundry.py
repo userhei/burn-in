@@ -40,8 +40,18 @@ def chg_light_to_red(obj,instance):
 def encode_utf8(str):
     return str.encode(encoding="utf-8")
 
+def msg_out(obj_msg_out, str):
+    obj_msg_out.insert('insert',str)
 
-
+def sand_glass(seconds,obj_msg_out = None):
+    print("    ",end = '')
+    if obj_msg_out:
+        msg_out(obj_msg_out,'    ')
+    for i in range(seconds - 1):
+        if obj_msg_out:
+            msg_out(obj_msg_out,'.')
+        print('.',end = '')
+    print('\n')
 
 
 
@@ -61,6 +71,15 @@ def deco_OutFromFolder(func):
 
     return _deco
 
+# def deco_message_output(func):
+#     def _deco(self, *args, **kwargs):
+#         def __deco(self, *args, **kwargs):
+#             try:
+#                 return func(self, *args, **kwargs)
+#             except Exception as E:
+#                 print(func.__name__, E)
+#         return 
+#     return _deco
 
 def deco_Exception(func):
 

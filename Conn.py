@@ -190,11 +190,8 @@ class HAAPConn(object):
                 return 0
 
     def go_to_main_menu(self):
-        print('----------check')
         self.Connection.write(b'\r')
-        print('----------check2')
         output = self.Connection.read_until(self._strMainPrompt, timeout=1)
-        print('----------out %s' % output)
         if self._strCLIPrompt in output:
             self.Connection.write(b'exit')
             if self._strMainPrompt in self.Connection.read_until(
@@ -219,34 +216,7 @@ class HAAPConn(object):
                     if self._strCLIPrompt in strConfirmCLI:
                         return True
 
-    def change_ip_address(self, new_ip_address):
-        if self.go_to_main_menu():
-            self.Connection.write('6'.encode(encoding="utf-8"))
-            self.Connection.read_until('interface'.encode(encoding="utf-8"), timeout = 2)
-            time.sleep(0.2)
-            self.Connection.write('e'.encode(encoding="utf-8"))
-            time.sleep(0.2)
-            self.Connection.write('a'.encode(encoding="utf-8"))
-            self.Connection.read_until('new IP'.encode(encoding="utf-8"), timeout = 2)
-            time.sleep(0.2)
-            self.Connection.write(new_ip_address.encode(encoding="utf-8"))
-            self.Connection.write('\r'.encode(encoding="utf-8"))
-            time.sleep(0.2)
-            self.Connection.write(s.encode_utf8('\r'))
-            time.sleep(0.2)
-            self.Connection.read_until('<Enter> = done'.encode(encoding="utf-8"), timeout = 2)
-            self.Connection.write('\r'.encode(encoding="utf-8"))
-            time.sleep(0.5)
-            # try:
-            self.Connection.read_until(s.encode_utf8('Coredump'), timeout = 2)
-            self.Connection.write(s.encode_utf8('b'))
-            self.Connection.read_until(s.encode_utf8('Reboot'), timeout = 1)
-            time.sleep(0.4)
-            self.Connection.write(s.encode_utf8('y'))
-            print('Rebooting engine, Please waiting...')
-            for i in range(15):
-                print('    %d' % i+1 )
-                time.sleep(1)
+
             # except Exception as E:
             #     print('No need to reboot')
             # self.Connection.close()    

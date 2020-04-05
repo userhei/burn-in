@@ -43,15 +43,10 @@ def receive(message_output,
         version,
         speed
         ):
-    print(mode)
-    print(IP_Entered)
-    print(license)
-    print(version)
-    print(speed)
     if s.is_IP(IP_Entered):
         pass
     else:
-        message_output.insert('insert','\n***Please type correct IP address\n\n')
+        message_output.insert('insert','\n***Please type correct IP address\n')
         sys.exit()
     solid_args = (message_output, light_obj_telnet, light_telnet, light_obj_FTP, light_FTP)
     if mode == 'target':
@@ -75,109 +70,77 @@ def receive(message_output,
     if mode == 'reset':
         pass
 
-def sandglass(seconds):
-    print("    ",end='')
-    for i in range(seconds - 1):
-        print('.',end='')
+
 
 
 
 ###-------------need improve message show using decorator----------
 def config_target(IP_Entered,license,version,speed,solid_args):
-    solid_args[0].insert('insert','0. Connecting to Engine %s \n' % IP_Entered)
+    obj_msg_out = solid_args[0]
+
+    s.msg_out(obj_msg_out,'0. Connecting to Engine %s \n' % IP_Entered)
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    solid_args[0].insert('insert','  1. Start Changing FW\n')
+    s.msg_out(obj_msg_out,'0. Connected to Engine %s \n' % IP_Entered)
+
+    s.msg_out(obj_msg_out,'  1. Start to Change FW\n')
     objEngine.change_FW(firmware_file_name)
-    solid_args[0].insert('insert','  1. Change FW Done, Rebooting...\n')
-    sandglass(45)
+    s.msg_out(obj_msg_out,'  1. Change FW Done, Rebooting...\n')
+    s.sand_glass(45)
+
     solid_args[0].insert('insert','  2. Start Restor Factory Default\n')
     objEngine.factory_default()
     solid_args[0].insert('insert','  2. Restor Factory Default Done, Rebooting...\n')
     sandglass(20)
+
     solid_args[0].insert('insert','  3. Start Changing IP Address\n')
     objEngine.change_ip_address(ip_engine_target)
     solid_args[0].insert('insert','  3. Change IP Address Done, Rebooting...\n')
     sandglass(15)
+
     del objEngine
 
-    solid_args[0].insert('insert','0. Connecting to Engine %s' % ip_engine_target)
+    s.msg_out(obj_msg_out,'0. Connecting to Engine %s' % ip_engine_target)
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    
+    s.msg_out(obj_msg_out,'  4. Start to Install License\n')
     objEngine.install_license(license)
-    objEngine.change_UID()
-    objEngine.shutdown_behaviour()
-    objEngine.change_FC_mode()
-    objEngine.change_FC_speed(speed)
-    objEngine.sync_time()
-    objEngine.create_fake_drive()
-    objEngine.mirror_and_mapping()
-    objEngine.show_mirror_and_mappting()
+    s.msg_out(obj_msg_out,'  4. Install License Done\n')
 
+    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
+    # objEngine.change_UID()
+    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
+    # s.msg_out(obj_msg_out,'  6. Start to change UID\n')
+    # objEngine.shutdown_behaviour()
+    # s.msg_out(obj_msg_out,'  6. change UID Done\n')
 
-def change_firmware(ip, version, fw_file):
-    Action(ip, telnet_port, passwd, FTP_port).change_FW(fw_file)
+    # s.msg_out(obj_msg_out,'  7. Start to change UID\n')
+    # objEngine.change_FC_mode()
+    # s.msg_out(obj_msg_out,'  7. change UID Done\n')
 
+    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
+    # objEngine.change_FC_speed(speed)
+    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
-def get_trace_all(trace_level):
-    folder = '%s/%s' % (strTraceFolder, s.time_now_folder())
-    if trace_level:
-        for ip in list_engines_IP:
-            Action(ip, telnet_port, passwd, FTP_port).get_trace(
-                folder, trace_level)
-    else:
-        for ip in list_engines_IP:
-            Action(ip, telnet_port, passwd, FTP_port).get_trace(
-                folder, trace_level_cfg)
+    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
+    # objEngine.sync_time()
+    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
+    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
+    # objEngine.create_fake_drive()
+    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
-def get_trace(ip, trace_level):
-    folder = '%s/%s' % (strTraceFolder, s.time_now_folder())
-    try:
-        if trace_level:
-            Action(ip, telnet_port, passwd, FTP_port).get_trace(
-                folder, trace_level)
-        else:
-            Action(ip, telnet_port, passwd, FTP_port).get_trace(
-                folder, trace_level_cfg)
-    finally:
-        return folder
+    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
+    # objEngine.mirror_and_mapping()
+    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
+    # mirror_and_mapping = objEngine.show_mirror_and_mappting()
+    # solid_args[0].insert('insert',
+    #     '''  5. Mirror and Mapping info show below:\n
+    #     --------------------------------------------\n
+    #     %s
+    #     --------------------------------------------\n''' % mirror_and_mapping)
 
-def execute_multi_commands(ip, command_file):
-    Action(ip, telnet_port, passwd, FTP_port).auto_commands(command_file)
-
-
-def set_time_all():
-    for ip in list_engines_IP:
-        Action(ip, telnet_port, passwd, FTP_port).set_time()
-
-
-def set_time(ip):
-    Action(ip, telnet_port, passwd, FTP_port).set_time()
-
-
-def show_time_all():
-    for ip in list_engines_IP:
-        Action(ip, telnet_port, passwd, FTP_port).show_time()
-
-
-def show_time(ip):
-    Action(ip, telnet_port, passwd, FTP_port).show_time()
-
-
-def periodically_check_all():
-    for ip in list_engines_IP:
-        PCFile_name = 'PC_%s_Engine_%s.log' % (
-            s.time_now_folder(), ip)
-        Action(ip, telnet_port, passwd, FTP_port).periodic_check(
-            lstPCCommand, strPCFolder, PCFile_name)
-
-
-def periodically_check(ip):
-    PCFile_name = 'PC_%s_Engine_%s.log' % (
-        s.time_now_folder(), ip)
-    Action(ip, telnet_port, passwd, FTP_port).periodic_check(
-        lstPCCommand, strPCFolder, PCFile_name)
 
 # class ActionOldVersion(Action):
 #     """docstring for ActionOldVersion"""
@@ -270,6 +233,12 @@ st
             connFTP = self._FTP_Conn
         return connFTP
 
+    def _telnet_write(self, str, time_out):
+        str_encoded = s.encode_utf8(str)
+        self._TN_Conn.Connection.write(str_encoded)
+        time.sleep(time_out)
+
+
     @s.deco_Exception
     def change_FW(self, strFWFile):
         connFTP = self._ftp()
@@ -286,13 +255,46 @@ st
         self._output_to_window('\n')
 
     def factory_default():
-        pass
+        if self._TN_Conn.go_to_main_menu():
+            self._TN_Conn.Connection.write('f')
+            self._TN_Conn.Connection.read_until('Reset'.encode(encoding="utf-8"), timeout = 1)
+            time.sleep(0.25)
+            self._TN_Conn.Connection.write('y')
+            time.sleep(0.25)
+            self._TN_Conn.Connection.write('y')
+            time.sleep(0.25)
+            self._TN_Conn.Connection.write('y')
+            print('Engine reset successful, waiting for reboot...about 30s')
 
     def change_ip_address(self, new_ip_address):
         if self._TN_Conn.go_to_main_menu():
-            print('---------------go to menu')
-            self._TN_Conn.change_ip_address(new_ip_address)
-          
+    #         self._TN_Conn.change_ip_address(new_ip_address)
+
+    # def change_ip_address(self, new_ip_address):
+    #     if self.go_to_main_menu():
+            self._TN_Conn.Connection.write('6'.encode(encoding="utf-8"))
+            self._TN_Conn.Connection.read_until(s.encode_utf8('interface'), timeout = 2)
+            time.sleep(0.2)
+            self._telnet_write('e', 0.1)
+            self._telnet_write('a', 0.1)
+            self._TN_Conn.Connection.read_until(s.encode_utf8('new IP'), timeout = 2)
+            time.sleep(0.2)
+            self._TN_Conn.Connection.write(s.encode_utf8('new_ip_address'))
+            self._TN_Conn.Connection.write('\r'.encode(encoding="utf-8"))
+            time.sleep(0.2)
+            self._TN_Conn.Connection.write(s.encode_utf8('\r'))
+            time.sleep(0.2)
+            self._TN_Conn.Connection.read_until('<Enter> = done'.encode(encoding="utf-8"), timeout = 2)
+            self._TN_Conn.Connection.write('\r'.encode(encoding="utf-8"))
+            time.sleep(0.5)
+            # try:
+            self._TN_Conn.Connection.read_until(s.encode_utf8('Coredump'), timeout = 2)
+            self._TN_Conn.Connection.write(s.encode_utf8('b'))
+            self._TN_Conn.Connection.read_until(s.encode_utf8('Reboot'), timeout = 1)
+            time.sleep(0.4)
+            self._TN_Conn.Connection.write(s.encode_utf8('y'))
+            print('Rebooting engine, Please waiting...\n')
+            s.sand_glass(45,self.message_output)
 
     def install_license():
         pass
