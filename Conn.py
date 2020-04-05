@@ -180,7 +180,7 @@ class HAAPConn(object):
     def is_AH(self):
         strPrompt = self.exctCMD('')
         if strPrompt:
-            if self._strAHPrompt in strPrompt:
+            if self._strAHPrompt in s.encode_utf8(strPrompt):
                 strVPD = self.exctCMD('vpd')
                 reAHNum = re.compile(r'Alert:\s*(\d*)')
                 objReAHNum = reAHNum.search(strVPD)
@@ -200,20 +200,20 @@ class HAAPConn(object):
             return True
 
     def go_to_CLI(self):
-        if self.Connection.write(b'\r'):
-            output = self.Connection.read_until(self._strCLIPrompt, timeout=1)
-            if self._strCLIPrompt in output:
+        self.Connection.write(b'\r')
+        output = self.Connection.read_until(self._strCLIPrompt, timeout=1)
+        if self._strCLIPrompt in output:
+            return True
+        elif self._strMainPrompt in output:
+            self.Connection.write(s.encode_utf8('7'))
+            str7Output = self.Connection.read_until(self._strCLIPrompt, timeout=1)
+            if self._strCLIPrompt in str7Output:
                 return True
-            elif self._strMainPrompt in output:
-                self.Connection.write('7')
-                str7Output = self.Connection.read_until(self._strCLIPrompt, timeout=1)
-                if self._strCLIPrompt in str7Output:
+            elif self._strCLIConflict in str7Output:
+                self.Connection.write(s.encode_utf8('y'))
+                strConfirmCLI = self.Connection.read_until(self._strCLIPrompt, timeout=1)
+                if self._strCLIPrompt in strConfirmCLI:
                     return True
-                elif self._strCLIConflict in str7Output:
-                    self.Connection.write('y')
-                    strConfirmCLI = self.Connection.read_until(self._strCLIPrompt, timeout=1)
-                    if self._strCLIPrompt in strConfirmCLI:
-                        return True
 
 
             # except Exception as E:
@@ -222,13 +222,13 @@ class HAAPConn(object):
 
     def exctCMD(self, strCommand):
         if self.Connection:
-            self.go_to_CLI()
-            self.Connection.write(
-                    strCommand.encode(encoding="utf-8") + b'\r')
-            strResult = str(self.Connection.read_until(
-                self._strCLIPrompt, timeout=2).decode())
-            if self._strCLIPrompt.decode() in strResult:
-                return strResult
+            if self.go_to_CLI():
+                self.Connection.write(
+                        strCommand.encode(encoding="utf-8") + b'\r')
+                strResult = str(self.Connection.read_until(
+                    self._strCLIPrompt, timeout=2).decode())
+                if self._strCLIPrompt.decode() in strResult:
+                    return strResult
 
     def Close(self):
         if self.Connection:
@@ -238,7 +238,7 @@ class HAAPConn(object):
         get_connection_status, doc="Get HAAPConn instance's connection")
         
 # w = HAAPConn('10.203.1.175', 23, 'password', 2)
-# w.change_ip_address('10.203.1.175')
+# w.install_license()
 
 if __name__ == '__main__':
 

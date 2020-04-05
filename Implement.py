@@ -80,35 +80,35 @@ def start_with_threading(func,args):
 def config_target(IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
 
-    objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    s.msg_out(obj_msg_out,'  1. Start to Change FW\n')
-    objEngine.change_FW(firmware_file_name)
-    s.msg_out(obj_msg_out,'  1. Change FW Done, Rebooting...\n')
-    del objEngine
-    s.sand_glass(45,obj_msg_out)
+    # objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
+    # s.msg_out(obj_msg_out,'  1. Start to Change FW\n')
+    # objEngine.change_FW(firmware_file_name)
+    # s.msg_out(obj_msg_out,'  1. Change FW Done, Rebooting...\n')
+    # del objEngine
+    # s.sand_glass(45,obj_msg_out)
 
 
-    objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    solid_args[0].insert('insert','  2. Start Restor Factory Default\n')
-    objEngine.factory_default()
-    solid_args[0].insert('insert','  2. Restor Factory Default Done, Rebooting...\n')
-    del objEngine
-    s.sand_glass(15,obj_msg_out)
+    # objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
+    # solid_args[0].insert('insert','  2. Start Restor Factory Default\n')
+    # objEngine.factory_default()
+    # solid_args[0].insert('insert','  2. Restor Factory Default Done, Rebooting...\n')
+    # del objEngine
+    # s.sand_glass(15,obj_msg_out)
 
 
-    objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    solid_args[0].insert('insert','  3. Start Changing IP Address\n')
-    objEngine.change_ip_address(ip_engine_target)
-    solid_args[0].insert('insert','  3. Change IP Address Done, Rebooting...\n')
-    del objEngine
-    s.sand_glass(20,obj_msg_out)
+    # objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
+    # solid_args[0].insert('insert','  3. Start Changing IP Address\n')
+    # objEngine.change_ip_address(ip_engine_target)
+    # solid_args[0].insert('insert','  3. Change IP Address Done, Rebooting...\n')
+    # del objEngine
+    # s.sand_glass(20,obj_msg_out)
     
 
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
     
     s.msg_out(obj_msg_out,'  4. Start to Install License\n')
     objEngine.install_license(license)
-    s.msg_out(obj_msg_out,'  4. Install License Done\n')
+    # s.msg_out(obj_msg_out,'  4. Install License Done\n')
 
     # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
     # objEngine.change_UID()
@@ -221,7 +221,7 @@ st
         else:
             s.msg_out(self.message_output, '0. Telnet Connect to %s Failed!!!\n' % self._host)
 
-    @s.deco_Exception
+    # @s.deco_Exception
     def _executeCMD(self, cmd):
         if self._TN_Connect_Status:
             return self._TN_Conn.exctCMD(cmd)
@@ -295,19 +295,26 @@ st
     def install_license(self, string_license):
         if string_license:
             lst_lsc = re.split(' |,|;',string_license)
+            if len(lst_lsc) != 3:
+                s.msg_out(self.message_output,'    ***4.0 Please check license code')
+                sys.exit()
             lst_lsc_id = [3,5,6]
             lst_lsc_desc = ['Firmware Downgrade','IO Generater','Fake Drive']
-            for i in range(2):
+            flag_success = 0
+            for i in range(len(lst_lsc)):
                 # Command: "license install 3 xxxxxxx"
-                cmd_lsc_install = 'license install %d %s' % (str(lst_lsc_id[i]),lst_lsc[i])
+                cmd_lsc_install = 'license install %s %s' % (str(lst_lsc_id[i]),lst_lsc[i])
                 output = self._executeCMD(cmd_lsc_install)
                 if 'installed' in output:
-                    s.msg_out(s.message_output,'      4.%d %s License install successful.'
-                        % (i+1,lst_lsc_desc[i]))
+                    s.msg_out(self.message_output,'    4.%d %s License install successful on %s.\n' % (i+1,lst_lsc_desc[i],self._host))
+                    flag_success = flag_success + 1
                 else:
-                    print('%s License isntall failed!!!' % lst_lsc_desc[i])
+                    s.msg_out(self.message_output,'%s License isntall failed!!!' % lst_lsc_desc[i])
+            if flag_success == 3:
+                s.msg_out(self.message_output,'  4. All License install successful on %s.' % self._host)
 
         else:
+            s.msg_out(self.message_output,'    ***4.0 License install failed on %s.\n    Please check license code' % self._host)
             sys.exit()
 
 
@@ -524,9 +531,10 @@ class a(object):
 
 solid_args = (a,a,a,a,a)
         
-w = Action('10.203.1.175', 23, 'password',
-                 21, 'loxoll', solid_args, intTimeout=1.5)
-w.change_ip_address('10.203.1.177')
+# w = Action('10.203.1.177', 23, 'password',
+#                  21, 'loxoll', solid_args, intTimeout=1.5)
+# # w.change_ip_address('10.203.1.177')
+# w.install_license('234234234,23424244,24224434')
 
 if __name__ == '__main__':
 
