@@ -104,13 +104,11 @@ def config_target(IP_Entered,license,version,speed,solid_args):
     s.sand_glass(20,obj_msg_out)
     
 
-
-    # s.msg_out(obj_msg_out,'0. Connecting to Engine %s' % ip_engine_target)
-    # objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
     
-    # s.msg_out(obj_msg_out,'  4. Start to Install License\n')
-    # objEngine.install_license(license)
-    # s.msg_out(obj_msg_out,'  4. Install License Done\n')
+    s.msg_out(obj_msg_out,'  4. Start to Install License\n')
+    objEngine.install_license(license)
+    s.msg_out(obj_msg_out,'  4. Install License Done\n')
 
     # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
     # objEngine.change_UID()
@@ -294,8 +292,25 @@ st
             time.sleep(0.4)
             self._TN_Conn.Connection.write(s.encode_utf8('y'))
 
-    def install_license():
-        pass
+    def install_license(self, string_license):
+        if string_license:
+            lst_lsc = re.split(' |,|;',string_license)
+            lst_lsc_id = [3,5,6]
+            lst_lsc_desc = ['Firmware Downgrade','IO Generater','Fake Drive']
+            for i in range(2):
+                # Command: "license install 3 xxxxxxx"
+                cmd_lsc_install = 'license install %d %s' % (str(lst_lsc_id[i]),lst_lsc[i])
+                output = self._executeCMD(cmd_lsc_install)
+                if 'installed' in output:
+                    s.msg_out(s.message_output,'      4.%d %s License install successful.'
+                        % (i+1,lst_lsc_desc[i]))
+                else:
+                    print('%s License isntall failed!!!' % lst_lsc_desc[i])
+
+        else:
+            sys.exit()
+
+
 
     def change_UID():
         pass
