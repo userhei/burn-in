@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 import time
-from Tkinter import *
-import tkMessageBox
+from tkinter import *
+#import tkMessageBox
 import threading
-from ScrolledText import ScrolledText
+import tkinter.scrolledtext as scrolledtext
 import Implement as fct
 
 #Some default value
@@ -16,23 +16,23 @@ string_license = 'xxx.xxx.xxx'
 def start_with_threading(func,args):
     threading.Thread(target=func, args=args).start()
 
-def transfer(mode, ip, license):
+def transfer(mode):
     fct.receive(message_output,
         light_obj_telnet,
         light_telnet,
         light_obj_FTP,
         light_FTP,
         mode,
-        IP_Entered,
-        license,
-        version,
-        speed
+        str(IP_Entered.get()),
+        str(licen_var.get()),
+        str(version.get()),
+        str(speed.get())
         )
 
 ### GUI
 #Main Window
 GUI = Tk()
-GUI.title('Burn-In Programe')
+GUI.title('Burn-In Program')
 width = 580
 height = 600
 screenwidth = GUI.winfo_screenwidth()
@@ -98,9 +98,9 @@ rb_vicom.pack(side = LEFT)
 
 frame_operation = Frame(GUI,width = 360,height = 40)
 frame_operation.pack(pady = 10)
-b_config_T = Button(frame_operation, text="T mode",command=lambda :start_with_threading(transfer,('target', ip_engine_target, string_license)), width=5,height=3)
+b_config_T = Button(frame_operation, text="T mode",command=lambda :start_with_threading(transfer,('target',)), width=5,height=3)
 b_config_T.pack(side = LEFT)
-b_config_I = Button(frame_operation, text="I mode",command=lambda :start_with_threading(transfer,('initiator', ip_engine_initiator, string_license)), width=5,height=3)
+b_config_I = Button(frame_operation, text="I mode",command=lambda :start_with_threading(transfer,('initiator',)), width=5,height=3)
 b_config_I.pack(side = LEFT,padx = 1)
 b_start = Button(frame_operation, text="start",command = '', width=5,height=3)
 b_start.pack(side = LEFT,padx = 1)
@@ -111,11 +111,13 @@ b_result.pack(side = LEFT,padx = 1)
 b_reset = Button(frame_operation, text="reset",command = '', width=5,height=3)
 b_reset.pack(side = LEFT,padx = 1)
 
-message_output = ScrolledText(GUI, width=72, height=24, bg = 'gray')
+message_output = scrolledtext.ScrolledText(GUI, width=72, height=24, bg = 'gray')
 message_output.pack(pady = 6)
 
 
+GUI.mainloop()
+
 
 if __name__ == '__main__':
-    GUI.mainloop()
+    
     pass

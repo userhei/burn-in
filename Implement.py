@@ -43,6 +43,16 @@ def receive(message_output,
         version,
         speed
         ):
+    print(mode)
+    print(IP_Entered)
+    print(license)
+    print(version)
+    print(speed)
+    if s.is_IP(IP_Entered):
+        pass
+    else:
+        message_output.insert('insert','\n***Please type correct IP address\n\n')
+        sys.exit()
     solid_args = (message_output, light_obj_telnet, light_telnet, light_obj_FTP, light_FTP)
     if mode == 'target':
         config_target(IP_Entered,license,version,speed,solid_args)
@@ -67,39 +77,39 @@ def receive(message_output,
 
 def config_target(IP_Entered,license,version,speed,solid_args):
 
-    solid_args[0].insert('insert','1. Connecting to Engine %s' % IP_Entered)
+    solid_args[0].insert('insert','1. Connecting to Engine %s \n' % IP_Entered)
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    solid_args[0].insert('insert','1. Start Changing FW')
-    objEngine.change_FW(firmware_file_name)
-    solid_args[0].insert('insert','1. Start Restor Factory Default')
-    objEngine.factory_default()
-    solid_args[0].insert('insert','1. Start Changing FW')
-    objEngine.factory_default(ip_engine_target)
+    # solid_args[0].insert('insert','1. Start Changing FW')
+    # objEngine.change_FW(firmware_file_name)
+    # solid_args[0].insert('insert','1. Start Restor Factory Default')
+    # objEngine.factory_default()
+    solid_args[0].insert('insert','1. Start Changing IP address\n')
+    objEngine.change_ip_address(ip_engine_target)
     del objEngine
 
-    solid_args[0].insert('insert','1. Connecting to Engine %s' % ip_engine_target)
-    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
-    objEngine.install_license(license)
-    objEngine.change_UID()
-    objEngine.shutdown_behaviour()
-    objEngine.change_FC_mode()
-    objEngine.change_FC_speed(,speed)
-    objEngine.sync_time()
-    objEngine.create_fake_drive()
-    objEngine.mirror_and_mapping()
-    objEngine.show_mirror_and_mappting()
+    # solid_args[0].insert('insert','1. Connecting to Engine %s' % ip_engine_target)
+    # objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    # objEngine.install_license(license)
+    # objEngine.change_UID()
+    # objEngine.shutdown_behaviour()
+    # objEngine.change_FC_mode()
+    # objEngine.change_FC_speed(speed)
+    # objEngine.sync_time()
+    # objEngine.create_fake_drive()
+    # objEngine.mirror_and_mapping()
+    # objEngine.show_mirror_and_mappting()
 
-    change_firmware(IP_Entered,version,solid_args)
-    factory_default(IP_Entered,solid_args)
-    change_ip_address(IP_Entered,ip_engine_target)
-    install_license(ip_engine_target,license)
-    change_UID(ip_engine_target)
-    shutdown_behaviour(ip_engine_target)
-    change_FC_mode(ip_engine_target)
-    change_FC_speed(ip_engine_target,speed)
-    sync_time(ip_engine_target)
-    create_fake_drive(ip_engine_target)
-    mirror_and_mapping(ip_engine_target)
+    # change_firmware(IP_Entered,version,solid_args)
+    # factory_default(IP_Entered,solid_args)
+    # change_ip_address(IP_Entered,ip_engine_target)
+    # install_license(ip_engine_target,license)
+    # change_UID(ip_engine_target)
+    # shutdown_behaviour(ip_engine_target)
+    # change_FC_mode(ip_engine_target)
+    # change_FC_speed(ip_engine_target,speed)
+    # sync_time(ip_engine_target)
+    # create_fake_drive(ip_engine_target)
+    # mirror_and_mapping(ip_engine_target)
 
 
 def change_firmware(ip, version, fw_file):
@@ -278,6 +288,7 @@ st
 
     def change_ip_address(self, new_ip_address):
         if self._TN_Conn.go_to_main_menu():
+            print('---------------go to menu')
             self._TN_Conn.change_ip_address(new_ip_address)
           
 

@@ -3,8 +3,9 @@
 from ftplib import FTP
 import telnetlib
 import sys
-import paramiko
+# import paramiko
 import re
+import time
 import Sundry as s
 
 
@@ -128,7 +129,7 @@ class HAAPConn(object):
     def __init__(self, strIP, intPort, strPWD, intTO):
         self._host = strIP
         self._port = intPort
-        self._password = strPWD
+        self._password = strPWD.encode(encoding="utf-8")
         self._timeout = intTO
         self._strLoginPrompt = 'Enter password'.encode(encoding="utf-8")
         self._strMainPrompt = 'HA-AP'.encode(encoding="utf-8")
@@ -137,25 +138,27 @@ class HAAPConn(object):
         self._strCLIConflict = 'Another session owns the CLI'.encode(encoding="utf-8")
         self.Connection = None
         self.telnet_connect()
+        
 
     def _connect(self):
-        try:
-            objTelnetConnect = telnetlib.Telnet(
-                self._host, self._port, self._timeout)
-            objTelnetConnect.read_until(
-                self._strLoginPrompt.encode(encoding="utf-8"), timeout=1)
-            objTelnetConnect.write(self._password.encode(encoding="utf-8"))
-            objTelnetConnect.write(b'\r')
-            objTelnetConnect.read_until(
-                self._strMainMenuPrompt.encode(encoding="utf-8"), timeout=1)
-            self.Connection = objTelnetConnect
-            return True
-        except Exception as E:
-            s.ShowErr(self.__class__.__name__,
-                      sys._getframe().f_code.co_name,
-                      'Telnet connect to "{}" failed with error:'.format(
-                          self._host),
-                      '"{}"'.format(E))
+        # try:
+            
+        objTelnetConnect = telnetlib.Telnet(self._host, self._port, self._timeout)
+        objTelnetConnect.read_until(
+            self._strLoginPrompt, timeout=1)
+        objTelnetConnect.write(self._password)
+        objTelnetConnect.write(b'\r')
+
+        objTelnetConnect.read_until(
+            self._strMainPrompt, timeout=1)
+        self.Connection = objTelnetConnect
+        return True
+        # except Exception as E:
+        #     s.ShowErr(self.__class__.__name__,
+        #               sys._getframe().f_code.co_name,
+        #               'Telnet connect to "{}" failed with error:'.format(
+        #                   self._host),
+        #               '"{}"'.format(E))
 
     def _connect_retry(self):
         if self.Connection:
@@ -165,6 +168,7 @@ class HAAPConn(object):
             self._connect()
 
     def telnet_connect(self):
+
         if not self._connect():
             self._connect_retry()
 
@@ -186,17 +190,20 @@ class HAAPConn(object):
                 return 0
 
     def go_to_main_menu(self):
-        if self.Connection.write(b'\r'):
-            output = self.Connection.read_until(self._strMainPrompt, timeout=1)
-            if self._strCLIPrompt in output:
-                self.Connection.write(b'exit')
-                if self._strMainPrompt in self.Connection.read_until(
-                    self._strMainPrompt, timeout=1):
-                    return True
-            elif self._strMainPrompt in output:
+        print('----------check')
+        self.Connection.write(b'\r')
+        print('----------check2')
+        output = self.Connection.read_until(self._strMainPrompt, timeout=1)
+        print('----------out %s' % output)
+        if self._strCLIPrompt in output:
+            self.Connection.write(b'exit')
+            if self._strMainPrompt in self.Connection.read_until(
+                self._strMainPrompt, timeout=1):
                 return True
+        elif self._strMainPrompt in output:
+            return True
 
-    def go_to_CLI():
+    def go_to_CLI(self):
         if self.Connection.write(b'\r'):
             output = self.Connection.read_until(self._strCLIPrompt, timeout=1)
             if self._strCLIPrompt in output:
@@ -212,37 +219,37 @@ class HAAPConn(object):
                     if self._strCLIPrompt in strConfirmCLI:
                         return True
 
-    def change_ip_address(new_ip_address):
+    def change_ip_address(self, new_ip_address):
         if self.go_to_main_menu():
-            self.Connection.write('6')
+            self.Connection.write('6'.encode(encoding="utf-8"))
             self.Connection.read_until('interface'.encode(encoding="utf-8"), timeout = 2)
             time.sleep(0.2)
-            self.Connection.write('e')
+            self.Connection.write('e'.encode(encoding="utf-8"))
             time.sleep(0.2)
-            self.Connection.write('a')
+            self.Connection.write('a'.encode(encoding="utf-8"))
             self.Connection.read_until('new IP'.encode(encoding="utf-8"), timeout = 2)
             time.sleep(0.2)
-            self.Connection.write(new_ip_address)
-            self.Connection.write('\r')
+            self.Connection.write(new_ip_address.encode(encoding="utf-8"))
+            self.Connection.write('\r'.encode(encoding="utf-8"))
             time.sleep(0.2)
-            self.Connection.write('\r')
+            self.Connection.write(s.encode_utf8('\r'))
             time.sleep(0.2)
             self.Connection.read_until('<Enter> = done'.encode(encoding="utf-8"), timeout = 2)
-            self.Connection.write('\r')
+            self.Connection.write('\r'.encode(encoding="utf-8"))
             time.sleep(0.5)
-            try:
-                self.Connection.read_until('Coredump'.encode(encoding="utf-8"), timeout = 2)
-                self.Connection.write('b')
-                self.Connection.read_until('Reboot'.encode(encoding="utf-8"), timeout = 1)
-                time.sleep(0.4)
-                self.Connection.write('y')
-                print('Rebooting engine, Please waiting...')
-                for i in range(15):
-                    print('.')
-                    time.sleep(1)
-            except Exception as E:
-                print('No need to reboot')
-            self.Connection.close()    
+            # try:
+            self.Connection.read_until(s.encode_utf8('Coredump'), timeout = 2)
+            self.Connection.write(s.encode_utf8('b'))
+            self.Connection.read_until(s.encode_utf8('Reboot'), timeout = 1)
+            time.sleep(0.4)
+            self.Connection.write(s.encode_utf8('y'))
+            print('Rebooting engine, Please waiting...')
+            for i in range(15):
+                print('    %d' % i+1 )
+                time.sleep(1)
+            # except Exception as E:
+            #     print('No need to reboot')
+            # self.Connection.close()    
 
     def exctCMD(self, strCommand):
         if self.Connection:
@@ -250,8 +257,8 @@ class HAAPConn(object):
             self.Connection.write(
                     strCommand.encode(encoding="utf-8") + b'\r')
             strResult = str(self.Connection.read_until(
-                CLI, timeout=2).decode())
-            if self._strCLIPrompt in strResult:
+                self._strCLIPrompt, timeout=2).decode())
+            if self._strCLIPrompt.decode() in strResult:
                 return strResult
 
     def Close(self):
@@ -261,6 +268,8 @@ class HAAPConn(object):
     connection = property(
         get_connection_status, doc="Get HAAPConn instance's connection")
         
+# w = HAAPConn('10.203.1.175', 23, 'password', 2)
+# w.change_ip_address('10.203.1.175')
 
 if __name__ == '__main__':
 

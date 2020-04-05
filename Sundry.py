@@ -5,8 +5,8 @@ import time
 import datetime
 import re
 
-from apscheduler.schedulers.blocking import BlockingScheduler
-from apscheduler.triggers.interval import IntervalTrigger
+# from apscheduler.schedulers.blocking import BlockingScheduler
+# from apscheduler.triggers.interval import IntervalTrigger
 
 from collections import OrderedDict as odd
 
@@ -37,6 +37,8 @@ def chg_light_to_red(obj,instance):
     obj.itemconfig(instance,fill='red')
 
 
+def encode_utf8(str):
+    return str.encode(encoding="utf-8")
 
 
 
@@ -105,8 +107,7 @@ def is_IP(strIP):
         '^((25[0-5]|2[0-4]\d|[01]?\d\d?)\.){3}(25[0-5]|2[0-4]\d|[01]?\d\d?)$')
     if reIP.match(strIP):
         return True
-    else:
-        return False
+
 
 
 def is_IP_list(lstIP):
