@@ -411,11 +411,13 @@ class Action():
     def create_fake_drive(self):
         self._executeCMD('fake on')
 
-    def mirror_and_mapping(self):
-        self._executeCMD('mirror create 2044')
-        self._executeCMD('map auto on')
-        self._executeCMD('map 0 33281')
-    
+    def _register(self, lst_cmd):
+        self._executeCMD('conmgr read')
+        for cmd in lst_cmd:
+            self._executeCMD(cmd)
+            time.sleep(0.1)
+        self._executeCMD('conmgr write')
+
     def register_initiator(self):
         #generate command
         lst_cmd = []
@@ -426,11 +428,12 @@ class Action():
             lst_cmd.append(str_cmd)
 
         #start registing
-        self._executeCMD('conmgr read')
-        for cmd in lst_cmd:
-            self._executeCMD(cmd)
-            time.sleep(0.1)
-        self._executeCMD('conmgr write')
+        self._register(lst_cmd)
+
+    def mirror_and_mapping(self):
+        self._executeCMD('mirror create 2044')
+        self._executeCMD('map auto on')
+        self._executeCMD('map 0 33281')
 
     def show_mirror_and_mappting(self):
         string_to_show = ''
@@ -444,7 +447,7 @@ Mirror and Mapping:
 -------------------------------------------
             ''' % string_to_show) 
 
-    def registe_drives(self):
+    def register_drives(self):
         #generate command
         lst_cmd = []
         lst_port = ['a1','a2','a3','a4']
@@ -454,11 +457,7 @@ Mirror and Mapping:
             lst_cmd.append(str_cmd)
 
         #start registing
-        self._executeCMD('conmgr read')
-        for cmd in lst_cmd:
-            self._executeCMD(cmd)
-            time.sleep(0.1)
-        self._executeCMD('conmgr write')
+        self._register(lst_cmd)
 
     def show_conmgr_status(self):
         string_to_show = self._executeCMD('conmgr status')
