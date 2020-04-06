@@ -105,14 +105,15 @@ def config_target(IP_Entered,license,version,speed,solid_args):
     
 
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
-    
+
+    s.msg_out(obj_msg_out,'  5. Start to change UID\n')
+    objEngine.change_UID()
+    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
+
+    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
     s.msg_out(obj_msg_out,'  4. Start to Install License\n')
     objEngine.install_license(license)
     # s.msg_out(obj_msg_out,'  4. Install License Done\n')
-
-    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
-    # objEngine.change_UID()
-    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
     # s.msg_out(obj_msg_out,'  6. Start to change UID\n')
     # objEngine.shutdown_behaviour()
@@ -136,48 +137,12 @@ def config_target(IP_Entered,license,version,speed,solid_args):
 
     # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
     # objEngine.mirror_and_mapping()
-    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
     # mirror_and_mapping = objEngine.show_mirror_and_mappting()
-    # solid_args[0].insert('insert',
-    #     '''  5. Mirror and Mapping info show below:\n
-    #     --------------------------------------------\n
-    #     %s
-    #     --------------------------------------------\n''' % mirror_and_mapping)
 
-
-# class ActionOldVersion(Action):
-#     """docstring for ActionOldVersion"""
-#     def __init__(self, strIP, intTNPort, strPassword,
-#                  intFTPPort, version, solid_args, intTimeout=1.5):
-#         super().__init__(self, strIP, intTNPort, strPassword,
-#                  intFTPPort, intTimeout)
-#         if version == 'vicom':
-#             self._FTP_username = 'vicomftp'
-#         elif version == 'vicom':
-#             self._FTP_username = 'ftpadmin'
-#         self.solid_args = solid_args
-
-# #rewrite function _FTP_connect with alterable FTP username
-#     def _FTP_connect(self):
-#         self._FTP_Conn = conn.FTPConn(self._host,
-#                                       self._FTPport,
-#                                       self._FTP_username,
-#                                       self._password,
-#                                       self._timeout)
-        
 
 
 class Action():
-    '''
-get_trace
-pc
-backup
-change_FW
-emc
-stt
-st
-    '''
 
     def __init__(self, strIP, intTNPort, strPassword,
                  intFTPPort, version, solid_args, intTimeout=1.5):
@@ -263,7 +228,7 @@ st
     def factory_default(self):
         if self._TN_Conn.go_to_main_menu():
             self._telnet_write('f', 0.1)
-            self._TN_Conn.Connection.read_until('Reset'.encode(encoding="utf-8"), timeout = 1)
+            self._TN_Conn.Connection.read_until(s.encode_utf8('Reset'), timeout = 1)
             time.sleep(0.25)
             self._telnet_write('y', 0.1)
             self._telnet_write('y', 0.1)
@@ -292,6 +257,21 @@ st
             time.sleep(0.4)
             self._TN_Conn.Connection.write(s.encode_utf8('y'))
 
+    def change_UID(self,mode):
+        if mode == 'target':
+            str_uid = '0000006022112250'
+        elif mode == 'initiator':
+            str_uid = '0000006022112251'
+        else:
+            s.msg_out(self.message_output,'failed ,check')
+            sys.exit()
+        uid_cmd = 'uid %s' % str_uid
+        output = self._executeCMD(uid_cmd)
+        if 'take full effect!' in output:
+            self._executeCMD('boot')
+        s.msg_out(self.message_output,'done ,rebooting')
+        s.sand_glass(15,self.message_output)
+
     def install_license(self, string_license):
         if string_license:
             lst_lsc = re.split(' |,|;',string_license)
@@ -306,7 +286,10 @@ st
                 cmd_lsc_install = 'license install %s %s' % (str(lst_lsc_id[i]),lst_lsc[i])
                 output = self._executeCMD(cmd_lsc_install)
                 if 'installed' in output:
-                    s.msg_out(self.message_output,'    4.%d %s License install successful on %s.\n' % (i+1,lst_lsc_desc[i],self._host))
+                    s.msg_out(
+                        self.message_output,'\
+                            4.%d %s License install successful on %s.\n' % (
+                                i+1,lst_lsc_desc[i],self._host))
                     flag_success = flag_success + 1
                 else:
                     s.msg_out(self.message_output,'%s License isntall failed!!!' % lst_lsc_desc[i])
@@ -318,30 +301,173 @@ st
             sys.exit()
 
 
+    def shutdown_behaviour(self):
+        if self._TN_Conn.go_to_main_menu():
+            self._telnet_write('6', 0.1)
+            for i in range(2):
+                output = self._TN_Conn.Connection.read_until(s.encode_utf8('seen'), timeout = 1)
+                if not 'stay up' in output:
+                    self._telnet_write('x', 0.1)
+                else:
+                    break
+            s.msg_out(self.message_output,'Change shutdown behaviour Done, no need reboot.')
+        else:
+            s.msg_out(self.message_output,'Change shutdown behaviour failed, connot go to main menu!')
+            sys.exit()
+    
+    # port: 'a','b','c','d','all';mode: 'loop','point'
+    def change_FC_mode(self,port,mode):
+        def change_mode(port,mode):
+            self._telnet_write(port, 0.1)
+            output = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
+            if mode == 'loop':
+                if not 'Arbitrated loop' in output:
+                    self._telnet_write('l', 0.1)
+            elif mode == 'point':
+                if 'Arbitrated loop' in output:
+                    self._telnet_write('l', 0.1)
+            self._telnet_write('\r', 0.1)
 
-    def change_UID():
-        pass
+        if self._TN_Conn.go_to_main_menu():
+            self._telnet_write('6', 0.1)
+            if port == 'all':
+                lst_port = ['a','b','c','d']
+                for port in lst_port:
+                    change_mode(port, mode)
+            self._telnet_write('\r')
+            s.msg_out(self.message_output,'Change FC Mode Done, no need reboot.')
+        else:
+            s.msg_out(self.message_output,'Change FC Mode Failed, connot go to main menu!')
+            sys.exit()
 
-    def shutdown_behaviour():
-        pass
+    def change_FC_speed(self,port,speed):
+        def change_speed(port,speed):
+            self._telnet_write(port, 0.1)
+            self._telnet_write('s', 0.1)
+            self._telnet_write(speed, 0.1)
+            self._telnet_write('\r', 0.1)
 
-    def change_FC_mode():
-        pass
+        if self._TN_Conn.go_to_main_menu():
+            self._telnet_write('6', 0.1)
+            if port == 'all':
+                lst_port = ['a','b','c','d']
+                for port in lst_port:
+                    change_speed(port, speed)
+            else:
+                change_speed(port, speed)
+            self._telnet_write('\r')
+            s.msg_out(self.message_output,'Done, no need reboot.')
+        else:
+            s.msg_out(self.message_output,'failed, connot go to main menu...')
+            sys.exit()
 
-    def change_fC_speed():
-        pass
+    def sync_time(self):
+        if self.AHStatus:
+            print("Engine '%s' is at AH status(AH Code %d)"
+                  % (self.host, self.AHStatus))
+            return
 
-    def sync_time():
-        pass
+        def _exct_cmd():
+            t = s.TimeNow()
 
-    def create_fake_drive():
-        pass
+            def complete_print(strDesc):
+                print('    Set  %-13s for engine "%s" completed...\
+                        ' % ('"%s"' % strDesc, self._host))
+                time.sleep(0.25)
 
-    def mirror_and_mapping():
-        pass
+            try:
+                # Set Time
+                if self._TN_Conn.exctCMD('rtc set time %d %d %d' % (
+                        t.h(), t.mi(), t.s())):
+                    complete_print('Time')
+                    # Set Date
+                    if self._TN_Conn.exctCMD('rtc set date %d %d %d' % (
+                            t.y() - 2000, t.mo(), t.d())):
+                        complete_print('Date')
+                        # Set Day of the Week
+                        DoW = t.wd() + 2
+                        if DoW == 8:
+                            DoW - 7
+                        if self._TN_Conn.exctCMD('rtc set day %d' % DoW):
+                            complete_print('Day_of_Week')
+                return True
+            except Exception as E:
+                s.ShowErr(self.__class__.__name__,
+                          sys._getframe().f_code.co_name,
+                          'rtc set faild for engine "{}" with error:'.format(
+                              self._host),
+                          '"{}"'.format(E))
 
-    def show_mirror_and_mappting():
-        pass
+        if self._TN_Conn:
+            if _exct_cmd():
+                print(
+                    '\nSetting time for engine "%s" completed...' % 
+                    self._host)
+            else:
+                print('\nSetting time for engine "%s" failed!!!' % self._host)
+        else:
+            print('\nSetting time for engine "%s" failed!!!' % self._host)
+
+    def create_fake_drive(self):
+        self._executeCMD('fake on')
+
+    def mirror_and_mapping(self):
+        self._executeCMD('mirror create 2044')
+        self._executeCMD('map auto on')
+        self._executeCMD('map 0 33281')
+    
+    def register_initiator(self):
+        #generate command
+        lst_cmd = []
+        lst_port = ['a1','a2','a3','a4']
+        for i in range(len(lst_port)):
+            str_cmd = 'conmgr drive add S %d %s 2%d00-006022-112250 0' % (
+                i+1,lst_port[i],i+1)
+            lst_cmd.append(str_cmd)
+
+        #start registing
+        self._executeCMD('conmgr read')
+        for cmd in lst_cmd:
+            self._executeCMD(cmd)
+            time.sleep(0.1)
+        self._executeCMD('conmgr write')
+
+    def show_mirror_and_mappting(self):
+        string_to_show = ''
+        string_to_show.apped(self._executeCMD('mirror'))
+        string_to_show.apped('\n')
+        string_to_show.apped(self._executeCMD('map'))
+        s.msg_out(self.message_output, '''
+Mirror and Mapping:
+-------------------------------------------
+%s
+-------------------------------------------
+            ''' % string_to_show) 
+
+    def registe_drives(self):
+        #generate command
+        lst_cmd = []
+        lst_port = ['a1','a2','a3','a4']
+        for i in range(len(lst_port)):
+            str_cmd = 'conmgr initiator add %d %s 2%d00-006022-112251' % (
+                i+1,lst_port[i],i+1)
+            lst_cmd.append(str_cmd)
+
+        #start registing
+        self._executeCMD('conmgr read')
+        for cmd in lst_cmd:
+            self._executeCMD(cmd)
+            time.sleep(0.1)
+        self._executeCMD('conmgr write')
+
+    def show_conmgr_status(self):
+        string_to_show = self._executeCMD('conmgr status')
+        s.msg_out(self.message_output, '''
+conmgr status:
+-------------------------------------------
+%s
+-------------------------------------------
+            ''' % string_to_show) 
 
     # @s.deco_Exception
     def auto_commands(self, strCMDFile):
@@ -497,37 +623,6 @@ st
         else:
             print('\nSetting time for engine "%s" failed!!!' % self._host)
 
-    def show_time(self):
-        if self.AHStatus:
-            print("Engine '%s' is at AH Status(AH Code %d)"
-                  % (self._host, self.AHStatus))
-            return
-        print('Time of engine "%s":' % self._host)
-        if self._TN_Conn:
-            try:
-                print(self._TN_Conn.exctCMD('rtc').replace(
-                    '\nCLI>', '').replace('rtc\r\n', ''))
-            except BaseException:
-                print('Get time of engine "%s" failed' % self._host)
-
-    def get_version(self):
-        if self.strVPD is None:
-            return
-        reFirmWare = re.compile(r'Firmware\sV\d+(.\d+)*')
-        resultFW = reFirmWare.search(self.strVPD)
-        if resultFW:
-            return resultFW.group().replace('Firmware ', '')
-        else:
-            print('Get firmware version failed for engine "%s"' % self._host)
-
-
-class a(object):
-    """docstring for a"""
-    def __init__(self, arg):
-        super(a, self).__init__()
-        self.arg = arg
-    def insert(a,b):
-        print(a,b)
 
 solid_args = (a,a,a,a,a)
         
