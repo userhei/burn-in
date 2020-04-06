@@ -54,13 +54,7 @@ def receive(message_output,
         config_target(IP_Entered,license,version,speed,solid_args)
 
     if mode == 'initiator':
-        message_output.insert('insert',(ip_engine_initiator,
-        string_license))
-        for i in range(10):
-            chg_light_to_green(light_obj_telnet,light_telnet)
-            time.sleep(0.5)
-            chg_light_to_red(light_obj_telnet,light_telnet)
-            time.sleep(0.5)
+        config_initiator(IP_Entered,license,version,speed,solid_args)
 
     if mode == 'start':
         pass
@@ -77,6 +71,13 @@ def start_with_threading(func,args):
 
 
 ###-------------need improve message show using decorator----------
+
+def config_initiator(IP_Entered,license,version,speed,solid_args):
+    obj_msg_out = solid_args[0]
+    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    s.msg_out(obj_msg_out,'  7. Start to change_FC_mode\n')
+    objEngine.change_FC_mode('all','point')
+
 def config_target(IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
 
@@ -104,41 +105,40 @@ def config_target(IP_Entered,license,version,speed,solid_args):
     # s.sand_glass(20,obj_msg_out)
     
 
-    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    # objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
 
-    s.msg_out(obj_msg_out,'  5. Start to change UID\n')
-    objEngine.change_UID()
+    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
+    # objEngine.change_UID()
     # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
-    s.msg_out(obj_msg_out,'  4. Start to Install License\n')
-    objEngine.install_license(license)
+    # s.msg_out(obj_msg_out,'  4. Start to Install License\n')
+    # objEngine.install_license(license)
     # s.msg_out(obj_msg_out,'  4. Install License Done\n')
 
-    # s.msg_out(obj_msg_out,'  6. Start to change UID\n')
+    # s.msg_out(obj_msg_out,'  6. Start to shutdown_behaviour\n')
     # objEngine.shutdown_behaviour()
-    # s.msg_out(obj_msg_out,'  6. change UID Done\n')
 
-    # s.msg_out(obj_msg_out,'  7. Start to change UID\n')
-    # objEngine.change_FC_mode()
-    # s.msg_out(obj_msg_out,'  7. change UID Done\n')
+    # s.msg_out(obj_msg_out,'  7. Start to change_FC_mode\n')
+    # objEngine.change_FC_mode('all','loop')
+
 
     # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
-    # objEngine.change_FC_speed(speed)
+    # objEngine.change_FC_speed('all',speed)
     # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
-    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
+    # s.msg_out(obj_msg_out,'  5. Start to sync time\n')
     # objEngine.sync_time()
     # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
-    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
-    # objEngine.create_fake_drive()
+    s.msg_out(obj_msg_out,'  5. Start to create fake drive\n')
+    objEngine.create_fake_drive()
     # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
-    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
-    # objEngine.mirror_and_mapping()
+    s.msg_out(obj_msg_out,'  5. Start to config mirror and mapping\n')
+    objEngine.mirror_and_mapping()
 
-    # mirror_and_mapping = objEngine.show_mirror_and_mappting()
+    mirror_and_mapping = objEngine.show_mirror_and_mappting()
 
 
 
@@ -306,7 +306,7 @@ class Action():
             self._telnet_write('6', 0.1)
             for i in range(2):
                 output = self._TN_Conn.Connection.read_until(s.encode_utf8('seen'), timeout = 1)
-                if not 'stay up' in output:
+                if not s.encode_utf8('stay up') in output:
                     self._telnet_write('x', 0.1)
                 else:
                     break
@@ -317,48 +317,69 @@ class Action():
     
     # port: 'a','b','c','d','all';mode: 'loop','point'
     def change_FC_mode(self,port,mode):
-        def change_mode(port,mode):
+
+        def _change_mode(port,mode):
             self._telnet_write(port, 0.1)
             output = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
+            # print('--------output after write port\n',output)
             if mode == 'loop':
-                if not 'Arbitrated loop' in output:
+                if not s.encode_utf8('Arbitrated loop') in output:
                     self._telnet_write('l', 0.1)
+                    # o  = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
+                    # print('----------\n',o)
             elif mode == 'point':
-                if 'Arbitrated loop' in output:
+                if s.encode_utf8('Arbitrated loop') in output:
                     self._telnet_write('l', 0.1)
+                    # o = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
+                    # print('----------\n',o)
             self._telnet_write('\r', 0.1)
+            self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
 
         if self._TN_Conn.go_to_main_menu():
+            time.sleep(0.25)
             self._telnet_write('6', 0.1)
+            # output6 = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
+            # print('--------output after write 6\n',output6)
             if port == 'all':
                 lst_port = ['a','b','c','d']
                 for port in lst_port:
-                    change_mode(port, mode)
-            self._telnet_write('\r')
-            s.msg_out(self.message_output,'Change FC Mode Done, no need reboot.')
+                    _change_mode(port, mode)
+                    s.msg_out(self.message_output,'      Port %s Changed.\n' % port)
+            else:
+                _change_mode(port, mode)
+            self._telnet_write('\r', 0.1)
+            self._telnet_write('\r', 0.1)
+            s.msg_out(self.message_output,'Change FC Mode Done, no need reboot.\n')
         else:
             s.msg_out(self.message_output,'Change FC Mode Failed, connot go to main menu!')
             sys.exit()
 
+        
+
     def change_FC_speed(self,port,speed):
-        def change_speed(port,speed):
+        def _change_speed(port,speed):
             self._telnet_write(port, 0.1)
             self._telnet_write('s', 0.1)
             self._telnet_write(speed, 0.1)
+            # output = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
+            # print('--------output after speed set\n',output)
             self._telnet_write('\r', 0.1)
 
         if self._TN_Conn.go_to_main_menu():
             self._telnet_write('6', 0.1)
+            # output6 = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
+            # print('--------output after write 6\n',output6)
             if port == 'all':
                 lst_port = ['a','b','c','d']
                 for port in lst_port:
-                    change_speed(port, speed)
+                    _change_speed(port, speed)
+                    s.msg_out(self.message_output,'      Port %s Changed.\n' % port)
             else:
-                change_speed(port, speed)
-            self._telnet_write('\r')
-            s.msg_out(self.message_output,'Done, no need reboot.')
+                _change_speed(port, speed)
+            self._telnet_write('\r', 0.1)
+            s.msg_out(self.message_output,'Done, no need reboot.\n')
         else:
-            s.msg_out(self.message_output,'failed, connot go to main menu...')
+            s.msg_out(self.message_output,'failed, connot go to main menu!\n')
             sys.exit()
 
     def sync_time(self):
@@ -372,6 +393,8 @@ class Action():
 
             def complete_print(strDesc):
                 print('    Set  %-13s for engine "%s" completed...\
+                        ' % ('"%s"' % strDesc, self._host))
+                s.msg_out(self.message_output,'    Set  %-13s for engine "%s" completed.\n\
                         ' % ('"%s"' % strDesc, self._host))
                 time.sleep(0.25)
 
@@ -397,6 +420,7 @@ class Action():
                           'rtc set faild for engine "{}" with error:'.format(
                               self._host),
                           '"{}"'.format(E))
+                sys.exit()
 
         if self._TN_Conn:
             if _exct_cmd():
@@ -437,9 +461,8 @@ class Action():
 
     def show_mirror_and_mappting(self):
         string_to_show = ''
-        string_to_show.apped(self._executeCMD('mirror'))
-        string_to_show.apped('\n')
-        string_to_show.apped(self._executeCMD('map'))
+        string_to_show = string_to_show + self._executeCMD('mirror') + '\n'
+        string_to_show =string_to_show + self._executeCMD('map') + '\n'
         s.msg_out(self.message_output, '''
 Mirror and Mapping:
 -------------------------------------------
@@ -485,7 +508,7 @@ conmgr status:
                     print('\rExecute command "{}" failed ...'.format(
                         strCMD))
                     break
-                time.sleep(0.5)
+                time.sleep(0.1)
 
     @s.deco_OutFromFolder
     def get_trace(self, strBaseFolder, intTraceLevel):
@@ -623,12 +646,13 @@ conmgr status:
             print('\nSetting time for engine "%s" failed!!!' % self._host)
 
 
-solid_args = (a,a,a,a,a)
+# solid_args = ('a','a','a','a','a')
         
 # w = Action('10.203.1.177', 23, 'password',
 #                  21, 'loxoll', solid_args, intTimeout=1.5)
 # # w.change_ip_address('10.203.1.177')
 # w.install_license('234234234,23424244,24224434')
+# w.shutdown_behaviour()
 
 if __name__ == '__main__':
 

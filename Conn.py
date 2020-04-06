@@ -193,8 +193,13 @@ class HAAPConn(object):
         output = self.Connection.read_until(self._strMainPrompt, timeout=2)
         if self._strCLIPrompt in output:
             self.Connection.write(b'exit')
-            if self._strMainPrompt in self.Connection.read_until(
-                self._strMainPrompt, timeout=1):
+            self.Connection.write(b'\r')
+            self.Connection.write(b'\r')
+            self.Connection.write(b'\r')
+            output_exit = self.Connection.read_until(self._strMainPrompt, timeout=1)
+            # if s.encode_utf8('Configuration Conflicts\r\nOwner is session') in output_exit
+            # print('--------------------exit\n',output_exit)
+            if self._strMainPrompt in output_exit:
                 return True
         elif self._strMainPrompt in output:
             return True
