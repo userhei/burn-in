@@ -11,7 +11,7 @@ import threading
 from collections import OrderedDict as odd
 
 # <<<Config Field>>>
-ip_engine_target = '10.203.1.177' 
+ip_engine_target = '10.203.1.175' 
 ip_engine_initiator = '10.203.1.176' 
 
 telnet_port = 23
@@ -69,39 +69,52 @@ def receive(message_output,
 
 def _config_universal(mode, IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
+    obj_light_telnet = solid_args[1]
+    instance_light_telnet = solid_args[2]
+    obj_light_FTP = solid_args[3]
+    instance_light_FTP = solid_args[4]
 
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
     s.msg_out(obj_msg_out,'  1. Start changing FW.\n')
-    objEngine.change_FW(firmware_file_name)
+    # objEngine.change_FW(firmware_file_name)
     s.msg_out(obj_msg_out,'  1. Finish changing FW, Rebooting...\n')
     del objEngine
-    s.sand_glass(45,obj_msg_out)
+    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
+    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
+    # s.sand_glass(45,obj_msg_out)
 
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
     s.msg_out(obj_msg_out,'  2. Start restoring factory default.\n')
     objEngine.factory_default()
     s.msg_out(obj_msg_out,'  2. Finish restoring factory default, Rebooting...\n')
     del objEngine
-    s.sand_glass(15,obj_msg_out)
+    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
+    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
+    s.sand_glass(20,obj_msg_out)
 
 
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
     solid_args[0].insert('insert','  3. Start changing IP address.\n')
     objEngine.change_ip_address(ip_engine_target)
-    solid_args[0].insert('insert','  3. Finish changing IP address.\n')
+    solid_args[0].insert('insert','  3. Finish changing IP address, Rebooting...\n')
     del objEngine
+    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
+    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
     s.sand_glass(20,obj_msg_out)
     
 
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
     s.msg_out(obj_msg_out,'  4. Start changing UID.\n')
     objEngine.change_UID(mode)
-    s.msg_out(obj_msg_out,'  4. Finish changing UID Done\n')
+    s.msg_out(obj_msg_out,'  4. Finish changing UID, Rebooting...\n')
+    del objEngine
+    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
+    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
+    s.sand_glass(20,obj_msg_out)
 
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
     s.msg_out(obj_msg_out,'  5. Start installing license.\n')
     objEngine.install_license(license)
-    s.msg_out(obj_msg_out,'  5. Finish installing license.\n')
 
     s.msg_out(obj_msg_out,'  6. Start setting shutdown behaviour.\n')
     objEngine.shutdown_behaviour()
@@ -118,6 +131,7 @@ def _config_universal(mode, IP_Entered,license,version,speed,solid_args):
 def config_target(IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
     _config_universal('target', IP_Entered,license,version,speed,solid_args)
+
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
 
     s.msg_out(obj_msg_out,'  10. Start creating fake drives.\n')
@@ -199,6 +213,7 @@ class Action():
         self._TN_Connect_Status = self._TN_Conn.get_connection_status()
         if self._TN_Connect_Status:
             s.msg_out(self.message_output, '0. Telnet Connected to %s.\n' % self._host)
+            s.chg_light_to_green(self.obj_light_telnet,self.instance_light_telnet)
         else:
             s.msg_out(self.message_output, '0. Telnet Connect to %s Failed!!!\n' % self._host)
 
@@ -223,6 +238,7 @@ class Action():
             connFTP = self._FTP_Conn
         if connFTP:
             s.msg_out(self.message_output, '0. FTP Connected to %s.\n' % self._host)
+            s.chg_light_to_green(self.obj_light_FTP,self.instance_light_FTP)
         else:
             s.msg_out(self.message_output, '0. FTP Connect to %s Failed!!!\n' % self._host)
         return connFTP
@@ -252,7 +268,7 @@ class Action():
             print('Engine reset successful, waiting for reboot...about 20s\n')
 
     def change_ip_address(self, new_ip_address):
-        s.msg_out(self.message_output,'    2.1 changing IP from "%s" to "%s" ...' % (self._host, new_ip_address))
+        s.msg_out(self.message_output,'    3.1 changing IP from "%s" to "%s" ...\n' % (self._host, new_ip_address))
         if self._TN_Conn.go_to_main_menu():
             self._telnet_write('6', 0.1)
             self._TN_Conn.Connection.read_until(s.encode_utf8('interface'), timeout = 2)
@@ -285,14 +301,14 @@ class Action():
         output = self._executeCMD(uid_cmd)
         if 'take full effect!' in output:
             self._executeCMD('boot')
-        s.msg_out(self.message_output,'done ,rebooting')
-        s.sand_glass(15,self.message_output)
+        s.msg_out(self.message_output,'  4. Finish changeing UID, Rebooting')
+        s.sand_glass(20,self.message_output)
 
     def install_license(self, string_license):
         if string_license:
             lst_lsc = re.split(' |,|;',string_license)
             if len(lst_lsc) != 3:
-                s.msg_out(self.message_output,'    ***4.0 Please check license code')
+                s.msg_out(self.message_output,'    ***5.0 Please check license code')
                 sys.exit()
             lst_lsc_id = [3,5,6]
             lst_lsc_desc = ['Firmware Downgrade','IO Generater','Fake Drive']
@@ -303,17 +319,16 @@ class Action():
                 output = self._executeCMD(cmd_lsc_install)
                 if 'installed' in output:
                     s.msg_out(
-                        self.message_output,'\
-                            4.%d %s License install successful on %s.\n' % (
-                                i+1,lst_lsc_desc[i],self._host))
+                        self.message_output,'    5.%d %s License install successful on %s.\n' % (
+                            i+1,lst_lsc_desc[i],self._host))
                     flag_success = flag_success + 1
                 else:
-                    s.msg_out(self.message_output,'%s License isntall failed!!!' % lst_lsc_desc[i])
+                    s.msg_out(self.message_output,'    ***5.%d %s License isntall failed!' % (i+1,lst_lsc_desc[i]))
             if flag_success == 3:
-                s.msg_out(self.message_output,'  4. All License install successful on %s.' % self._host)
+                s.msg_out(self.message_output,'  5. Finish installing licenses on %s.' % self._host)
 
         else:
-            s.msg_out(self.message_output,'  ***4.0 License install failed on %s.\n    Please check license code' % self._host)
+            s.msg_out(self.message_output,'  ***5.0 License install failed on %s.\n    Please check license code' % self._host)
             sys.exit()
 
     def shutdown_behaviour(self):
@@ -325,7 +340,7 @@ class Action():
                     self._telnet_write('x', 0.1)
                 else:
                     break
-            s.msg_out(self.message_output,'  5.Finish setting shutdown behaviour.')
+            s.msg_out(self.message_output,'  6.Finish setting shutdown behaviour.\n')
         else:
             s.msg_out(self.message_output,'  ***5.Setting shutdown behaviour failed!')
             sys.exit()
@@ -407,10 +422,8 @@ class Action():
             t = s.TimeNow()
 
             def complete_print(strDesc):
-                print('    Set  %-13s for engine "%s" completed...\
-                        ' % ('"%s"' % strDesc, self._host))
-                s.msg_out(self.message_output,'    Set  %-13s for engine "%s" completed.\n\
-                        ' % ('"%s"' % strDesc, self._host))
+                print('    Set  %-13s for engine "%s" completed...' % ('"%s"' % strDesc, self._host))
+                s.msg_out(self.message_output,'    Set  %-13s for engine "%s" completed.\n' % ('"%s"' % strDesc, self._host))
                 time.sleep(0.25)
 
             try:
@@ -468,7 +481,7 @@ class Action():
   -------------------------------------------
   %s
   -------------------------------------------
-              ''' % string_to_show) 
+              \n''' % string_to_show) 
 
     def _register(self, lst_cmd):
         self._executeCMD('conmgr read')
@@ -477,7 +490,7 @@ class Action():
             time.sleep(0.1)
         self._executeCMD('conmgr write')
 
-    def register_initiator(self):
+    def register_drives(self):
         #generate command
         lst_cmd = []
         lst_port = ['a1','a2','a3','a4']
@@ -490,7 +503,7 @@ class Action():
         self._register(lst_cmd)
         s.msg_out(self.message_output,'  12. Finish registering initiators.\n')
 
-    def register_drives(self):
+    def register_initiator(self):
         #generate command
         lst_cmd = []
         lst_port = ['a1','a2','a3','a4']
@@ -505,11 +518,11 @@ class Action():
     def show_conmgr_status(self):
         string_to_show = self._executeCMD('conmgr status')
         s.msg_out(self.message_output, '''
-  conmgr status:
+  Conmgr Status:
   -------------------------------------------
   %s
   -------------------------------------------
-              ''' % string_to_show) 
+              \n''' % string_to_show) 
 
     # @s.deco_Exception
     def auto_commands(self, strCMDFile):

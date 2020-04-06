@@ -56,7 +56,7 @@ light_obj_telnet.pack(side = LEFT)
 
 
 light_obj_FTP = Canvas(frame_IP,width = 40,height =40)
-light_FTP = light_obj_FTP.create_oval(14,14,26,26,fill='green',tags = 'light_FTP')
+light_FTP = light_obj_FTP.create_oval(14,14,26,26,fill='red',tags = 'light_FTP')
 light_obj_FTP.pack(side = LEFT)
 
 #License Entered

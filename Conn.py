@@ -143,8 +143,7 @@ class HAAPConn(object):
     def _connect(self):
         # try:
         objTelnetConnect = telnetlib.Telnet(self._host, self._port, self._timeout)
-        objTelnetConnect.read_until(
-            self._strLoginPrompt, timeout=1)
+        objTelnetConnect.read_until(self._strLoginPrompt, timeout=2)
         objTelnetConnect.write(self._password)
         objTelnetConnect.write(b'\r')
 
