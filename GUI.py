@@ -6,16 +6,12 @@ import threading
 import tkinter.scrolledtext as scrolledtext
 import Implement as fct
 
-#Some default value
-
-string_license = 'xxx.xxx.xxx'
-
 ### function called by GUI
-
-
+#threading for no pending
 def start_with_threading(func,args):
     threading.Thread(target=func, args=args).start()
 
+#transfer all data and object to Implement.py
 def transfer(mode):
     fct.receive(message_output,
         light_obj_telnet,
@@ -101,27 +97,25 @@ rb_vicom.pack(side = LEFT)
 #Opration Buttons
 frame_operation = Frame(GUI,width = 360,height = 40)
 frame_operation.pack(pady = 10)
-b_config_T = Button(frame_operation, text="T mode",command=lambda :start_with_threading(transfer,('target',)), width=5,height=3)
+b_config_T = Button(frame_operation, text="T mode",command = lambda:start_with_threading(transfer,('target',)), width=5,height=3)
 b_config_T.pack(side = LEFT)
-b_config_I = Button(frame_operation, text="I mode",command=lambda :start_with_threading(transfer,('initiator',)), width=5,height=3)
+b_config_I = Button(frame_operation, text="I mode",command = lambda:start_with_threading(transfer,('initiator',)), width=5,height=3)
 b_config_I.pack(side = LEFT,padx = 1)
-b_start = Button(frame_operation, text="start",command = '', width=5,height=3)
+b_start = Button(frame_operation, text="start",command = lambda:start_with_threading(transfer,('start',)), width=5,height=3)
 b_start.pack(side = LEFT,padx = 1)
-b_status = Button(frame_operation, text="status",command = '', width=5,height=3)
+b_status = Button(frame_operation, text="status",command = lambda:start_with_threading(transfer,('status',)), width=5,height=3)
 b_status.pack(side = LEFT,padx = 1)
-b_result = Button(frame_operation, text="result",command = '', width=5,height=3)
+b_result = Button(frame_operation, text="result",command = lambda:start_with_threading(transfer,('result',)), width=5,height=3)
 b_result.pack(side = LEFT,padx = 1)
-b_reset = Button(frame_operation, text="reset",command = '', width=5,height=3)
+b_reset = Button(frame_operation, text="reset",command = lambda:start_with_threading(transfer,('reset',)), width=5,height=3)
 b_reset.pack(side = LEFT,padx = 1)
 
 #Message Output Window
 message_output = scrolledtext.ScrolledText(GUI, width=72, height=24, bg = 'gray')
 message_output.pack(pady = 6)
 
-
 GUI.mainloop()
 
 
 if __name__ == '__main__':
-    
     pass

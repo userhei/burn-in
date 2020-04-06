@@ -11,7 +11,6 @@ import threading
 from collections import OrderedDict as odd
 
 # <<<Config Field>>>
-
 ip_engine_target = '10.203.1.177' 
 ip_engine_initiator = '10.203.1.176' 
 
@@ -53,94 +52,111 @@ def receive(message_output,
     if mode == 'target':
         config_target(IP_Entered,license,version,speed,solid_args)
 
-    if mode == 'initiator':
+    elif mode == 'initiator':
         config_initiator(IP_Entered,license,version,speed,solid_args)
 
-    if mode == 'start':
-        pass
-    if mode == 'status':
-        pass
-    if mode == 'result':
-        pass
-    if mode == 'reset':
-        pass
+    elif mode == 'start':
+        start_test()
 
-def start_with_threading(func,args):
-    threading.Thread(target=func, args=args).start()
+    elif mode == 'status':
+        get_test_status()
 
+    elif mode == 'result':
+        get_test_result()
 
+    elif mode == 'reset':
+        reset_all_engines()
 
-###-------------need improve message show using decorator----------
-
-def config_initiator(IP_Entered,license,version,speed,solid_args):
+def _config_universal(mode, IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
+
+    objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
+    s.msg_out(obj_msg_out,'  1. Start changing FW.\n')
+    objEngine.change_FW(firmware_file_name)
+    s.msg_out(obj_msg_out,'  1. Finish changing FW, Rebooting...\n')
+    del objEngine
+    s.sand_glass(45,obj_msg_out)
+
+    objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
+    s.msg_out(obj_msg_out,'  2. Start restoring factory default.\n')
+    objEngine.factory_default()
+    s.msg_out(obj_msg_out,'  2. Finish restoring factory default, Rebooting...\n')
+    del objEngine
+    s.sand_glass(15,obj_msg_out)
+
+
+    objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
+    solid_args[0].insert('insert','  3. Start changing IP address.\n')
+    objEngine.change_ip_address(ip_engine_target)
+    solid_args[0].insert('insert','  3. Finish changing IP address.\n')
+    del objEngine
+    s.sand_glass(20,obj_msg_out)
+    
+
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
-    s.msg_out(obj_msg_out,'  7. Start to change_FC_mode\n')
-    objEngine.change_FC_mode('all','point')
+    s.msg_out(obj_msg_out,'  4. Start changing UID.\n')
+    objEngine.change_UID(mode)
+    s.msg_out(obj_msg_out,'  4. Finish changing UID Done\n')
+
+    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    s.msg_out(obj_msg_out,'  5. Start installing license.\n')
+    objEngine.install_license(license)
+    s.msg_out(obj_msg_out,'  5. Finish installing license.\n')
+
+    s.msg_out(obj_msg_out,'  6. Start setting shutdown behaviour.\n')
+    objEngine.shutdown_behaviour()
+
+    s.msg_out(obj_msg_out,'  7. Start changing mode of FC ports.\n')
+    objEngine.change_FC_mode('all','loop')
+
+    s.msg_out(obj_msg_out,'  8. Start changing speed of FC ports.\n')
+    objEngine.change_FC_speed('all',speed)
+
+    s.msg_out(obj_msg_out,'  9. Start syncing time of engine with system.\n')
+    objEngine.sync_time()
 
 def config_target(IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
-
-    # objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    # s.msg_out(obj_msg_out,'  1. Start to Change FW\n')
-    # objEngine.change_FW(firmware_file_name)
-    # s.msg_out(obj_msg_out,'  1. Change FW Done, Rebooting...\n')
-    # del objEngine
-    # s.sand_glass(45,obj_msg_out)
-
-
-    # objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    # solid_args[0].insert('insert','  2. Start Restor Factory Default\n')
-    # objEngine.factory_default()
-    # solid_args[0].insert('insert','  2. Restor Factory Default Done, Rebooting...\n')
-    # del objEngine
-    # s.sand_glass(15,obj_msg_out)
-
-
-    # objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    # solid_args[0].insert('insert','  3. Start Changing IP Address\n')
-    # objEngine.change_ip_address(ip_engine_target)
-    # solid_args[0].insert('insert','  3. Change IP Address Done, Rebooting...\n')
-    # del objEngine
-    # s.sand_glass(20,obj_msg_out)
-    
-
-    # objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
-
-    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
-    # objEngine.change_UID()
-    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
-
+    _config_universal('target', IP_Entered,license,version,speed,solid_args)
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
-    # s.msg_out(obj_msg_out,'  4. Start to Install License\n')
-    # objEngine.install_license(license)
-    # s.msg_out(obj_msg_out,'  4. Install License Done\n')
 
-    # s.msg_out(obj_msg_out,'  6. Start to shutdown_behaviour\n')
-    # objEngine.shutdown_behaviour()
-
-    # s.msg_out(obj_msg_out,'  7. Start to change_FC_mode\n')
-    # objEngine.change_FC_mode('all','loop')
-
-
-    # s.msg_out(obj_msg_out,'  5. Start to change UID\n')
-    # objEngine.change_FC_speed('all',speed)
-    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
-
-    # s.msg_out(obj_msg_out,'  5. Start to sync time\n')
-    # objEngine.sync_time()
-    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
-
-    s.msg_out(obj_msg_out,'  5. Start to create fake drive\n')
+    s.msg_out(obj_msg_out,'  10. Start creating fake drives.\n')
     objEngine.create_fake_drive()
-    # s.msg_out(obj_msg_out,'  5. change UID Done\n')
 
-    s.msg_out(obj_msg_out,'  5. Start to config mirror and mapping\n')
+    s.msg_out(obj_msg_out,'  11. Start creating mirror and mapping.\n')
     objEngine.mirror_and_mapping()
 
-    mirror_and_mapping = objEngine.show_mirror_and_mappting()
+    s.msg_out(obj_msg_out,'  12. Start registering initiators.\n')
+    objEngine.register_initiator()
 
+    #show info -- mirror and mapping.
+    objEngine.show_mirror_and_mappting()
 
+    #show info -- conmgr status.
+    objEngine.show_conmgr_status()
+
+def config_initiator(IP_Entered,license,version,speed,solid_args):
+    obj_msg_out = solid_args[0]
+    _config_universal('initiator', IP_Entered,license,version,speed,solid_args)
+
+    objEngine = Action(ip_engine_initiator, telnet_port, passwd, FTP_port, version, solid_args)
+    s.msg_out(obj_msg_out,'  10. Start registering drives.\n')
+    objEngine.register_drives()
+
+    #show info -- conmgr status.
+    objEngine.show_conmgr_status()
+
+def start_test():
+    pass
+
+def get_test_status():
+    pass
+
+def get_test_result():
+    pass
+
+def reset_all_engines():
+    pass
 
 class Action():
 
@@ -297,9 +313,8 @@ class Action():
                 s.msg_out(self.message_output,'  4. All License install successful on %s.' % self._host)
 
         else:
-            s.msg_out(self.message_output,'    ***4.0 License install failed on %s.\n    Please check license code' % self._host)
+            s.msg_out(self.message_output,'  ***4.0 License install failed on %s.\n    Please check license code' % self._host)
             sys.exit()
-
 
     def shutdown_behaviour(self):
         if self._TN_Conn.go_to_main_menu():
@@ -310,9 +325,9 @@ class Action():
                     self._telnet_write('x', 0.1)
                 else:
                     break
-            s.msg_out(self.message_output,'Change shutdown behaviour Done, no need reboot.')
+            s.msg_out(self.message_output,'  5.Finish setting shutdown behaviour.')
         else:
-            s.msg_out(self.message_output,'Change shutdown behaviour failed, connot go to main menu!')
+            s.msg_out(self.message_output,'  ***5.Setting shutdown behaviour failed!')
             sys.exit()
     
     # port: 'a','b','c','d','all';mode: 'loop','point'
@@ -349,9 +364,9 @@ class Action():
                 _change_mode(port, mode)
             self._telnet_write('\r', 0.1)
             self._telnet_write('\r', 0.1)
-            s.msg_out(self.message_output,'Change FC Mode Done, no need reboot.\n')
+            s.msg_out(self.message_output,'  7. Finish changing mode of FC ports.\n')
         else:
-            s.msg_out(self.message_output,'Change FC Mode Failed, connot go to main menu!')
+            s.msg_out(self.message_output,'  ***7. Changing mode of FC ports failed.\n')
             sys.exit()
 
         
@@ -377,9 +392,9 @@ class Action():
             else:
                 _change_speed(port, speed)
             self._telnet_write('\r', 0.1)
-            s.msg_out(self.message_output,'Done, no need reboot.\n')
+            s.msg_out(self.message_output,'  8. Finish changing speed of FC ports.\n')
         else:
-            s.msg_out(self.message_output,'failed, connot go to main menu!\n')
+            s.msg_out(self.message_output,'  ***8. Changing speed of FC ports failed!\n')
             sys.exit()
 
     def sync_time(self):
@@ -427,13 +442,33 @@ class Action():
                 print(
                     '\nSetting time for engine "%s" completed...' % 
                     self._host)
+                s.msg_out(self.message_output,'  9. Finish syncing time of engine with system.\n')
             else:
                 print('\nSetting time for engine "%s" failed!!!' % self._host)
-        else:
-            print('\nSetting time for engine "%s" failed!!!' % self._host)
+                s.msg_out(self.message_output,'  ***9. Syncing time of engine failed.\n')
 
     def create_fake_drive(self):
         self._executeCMD('fake on')
+        s.msg_out(self.message_output,'  10. Finish creating fake drives.\n')
+
+
+
+    def mirror_and_mapping(self):
+        self._executeCMD('mirror create 2044')
+        self._executeCMD('map auto on')
+        self._executeCMD('map 0 33281')
+        s.msg_out(self.message_output,'  11. Finish creating mirror and mapping.\n')
+
+    def show_mirror_and_mappting(self):
+        string_to_show = ''
+        string_to_show = string_to_show + self._executeCMD('mirror') + '\n'
+        string_to_show =string_to_show + self._executeCMD('map') + '\n'
+        s.msg_out(self.message_output, '''
+  Mirror and Mapping:
+  -------------------------------------------
+  %s
+  -------------------------------------------
+              ''' % string_to_show) 
 
     def _register(self, lst_cmd):
         self._executeCMD('conmgr read')
@@ -453,22 +488,7 @@ class Action():
 
         #start registing
         self._register(lst_cmd)
-
-    def mirror_and_mapping(self):
-        self._executeCMD('mirror create 2044')
-        self._executeCMD('map auto on')
-        self._executeCMD('map 0 33281')
-
-    def show_mirror_and_mappting(self):
-        string_to_show = ''
-        string_to_show = string_to_show + self._executeCMD('mirror') + '\n'
-        string_to_show =string_to_show + self._executeCMD('map') + '\n'
-        s.msg_out(self.message_output, '''
-Mirror and Mapping:
--------------------------------------------
-%s
--------------------------------------------
-            ''' % string_to_show) 
+        s.msg_out(self.message_output,'  12. Finish registering initiators.\n')
 
     def register_drives(self):
         #generate command
@@ -485,11 +505,11 @@ Mirror and Mapping:
     def show_conmgr_status(self):
         string_to_show = self._executeCMD('conmgr status')
         s.msg_out(self.message_output, '''
-conmgr status:
--------------------------------------------
-%s
--------------------------------------------
-            ''' % string_to_show) 
+  conmgr status:
+  -------------------------------------------
+  %s
+  -------------------------------------------
+              ''' % string_to_show) 
 
     # @s.deco_Exception
     def auto_commands(self, strCMDFile):
