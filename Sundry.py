@@ -187,6 +187,17 @@ def ShowErr(*argvs):
 '''.format(argvs[0], argvs[1], argvs[2], err_msg = (argvs[3] if argvs[3] else '' ))))
 
 
+def make_dir(strFolder):
+    if strFolder:
+        if os.path.exists(strFolder):
+            pass
+        else:
+            try:
+                os.makedirs(strFolder)
+            except Exception as E:
+                print('Create folder "{}" fail with error:\n\t"{}"'.format(
+                    strFolder, E))
+
 def GotoFolder(strFolder):
 
     def _mkdir():

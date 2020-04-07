@@ -22,6 +22,7 @@ firmware_file_name = 'fw.bin'
 
 strTraceFolder = 'Trace'
 strPCFolder = 'Current_Config'
+strResultFolder = 'test_result'
 lstPCCommand = ['vpd',
                 'conmgr status',
                 'mirror',
@@ -56,17 +57,96 @@ def receive(message_output,
         config_initiator(IP_Entered,license,version,speed,solid_args)
 
     elif mode == 'start':
-        start_test()
+        start_test(license,version,speed,solid_args)
 
     elif mode == 'status':
-        get_test_status()
+        get_test_status(license,version,speed,solid_args)
 
     elif mode == 'result':
-        get_test_result()
+        get_test_result(license,version,speed,solid_args)
 
     elif mode == 'reset':
-        reset_all_engines()
+        reset_all_engines(license,version,speed,solid_args)
 
+
+### Test Field
+
+# def _get_max_serial_num(self):
+#     def _get_serial_num(str_vpd_info):
+#         re_serial_num = re.compile(r'(?<=Serial Number : )\d{8}')
+#         return re_serial_num.search(str_vpd_info).group()
+#     obj_engine_target = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+#     obj_engine_initiator = Action(ip_engine_initiator, telnet_port, passwd, FTP_port, version, solid_args)
+#     vpd_engine_target = obj_engine_target.strVPD
+#     vpd_engine_initiator = obj_engine_initiator.strVPD
+#     time.sleep(0.2)
+#     del obj_engine_target
+#     del obj_engine_initiator
+
+#     return max(int(_get_serial_num(vpd_engine_target)), int(_get_serial_num(vpd_engine_initiator)))
+
+def start_test(ip_engine_initiator,license,version,speed,solid_args):
+    obj_msg_out = solid_args[0]
+    # obj_light_telnet = solid_args[1]
+    # instance_light_telnet = solid_args[2]
+    obj_light_FTP = solid_args[3]
+    instance_light_FTP = solid_args[4]
+
+    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    s.msg_out(obj_msg_out,'  3. Start testing.\n')
+    objEngine.start_test()
+    time.sleep(1)
+    del objEngine
+    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
+
+def get_test_status(ip_engine_initiator,license,version,speed,solid_args):
+    obj_msg_out = solid_args[0]
+    # obj_light_telnet = solid_args[1]
+    # instance_light_telnet = solid_args[2]
+    obj_light_FTP = solid_args[3]
+    instance_light_FTP = solid_args[4]
+    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    s.msg_out(obj_msg_out,'  4. Start getting status.\n')
+    s.msg_out(obj_msg_out,'  4.1 Status: %s.\n' % objEngine.get_status())
+    time.sleep(1)
+    del objEngine
+    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
+
+def get_test_result(ip_engine_initiator,license,version,speed,solid_args):
+    obj_msg_out = solid_args[0]
+    # obj_light_telnet = solid_args[1]
+    # instance_light_telnet = solid_args[2]
+    obj_light_FTP = solid_args[3]
+    instance_light_FTP = solid_args[4]
+    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
+    s.msg_out(obj_msg_out,'  5. Start getting result.\n')
+    objEngine.get_result()
+    time.sleep(1)
+    del objEngine
+    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
+
+def reset_all_engines(license,version,speed,solid_args):
+    obj_msg_out = solid_args[0]
+    # obj_light_telnet = solid_args[1]
+    # instance_light_telnet = solid_args[2]
+    obj_light_FTP = solid_args[3]
+    instance_light_FTP = solid_args[4]
+
+    def _reset_engine(ip_engine):
+        s.msg_out(obj_msg_out,'    6.x Start resetting engine %s.\n' % ip_engine)
+        objEngine = Action(ip_engine, telnet_port, passwd, FTP_port, version, solid_args)
+        objEngine.reset_engine()
+        time.sleep(1)
+        s.msg_out(obj_msg_out,'    6.x Finish resetting engine %s.\n' % ip_engine)
+        del objEngine
+        s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
+
+    s.msg_out(obj_msg_out,'  6. Start resetting all engines.\n')
+    _reset_engine(ip_engine_target)
+    _reset_engine(ip_engine_initiator)
+    
+
+### Config Field
 def _config_universal(mode, IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
     obj_light_telnet = solid_args[1]
@@ -79,19 +159,14 @@ def _config_universal(mode, IP_Entered,license,version,speed,solid_args):
     # objEngine.change_FW(firmware_file_name)
     s.msg_out(obj_msg_out,'  1. Finish changing FW, Rebooting...\n')
     del objEngine
-    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
-    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
+
     # s.sand_glass(45,obj_msg_out)
 
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
     s.msg_out(obj_msg_out,'  2. Start restoring factory default.\n')
     objEngine.factory_default()
-    s.msg_out(obj_msg_out,'  2. Finish restoring factory default, Rebooting...\n')
+    time.sleep(0.5)
     del objEngine
-    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
-    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
-    s.sand_glass(20,obj_msg_out)
-
 
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
     solid_args[0].insert('insert','  3. Start changing IP address.\n')
@@ -159,18 +234,7 @@ def config_initiator(IP_Entered,license,version,speed,solid_args):
 
     #show info -- conmgr status.
     objEngine.show_conmgr_status()
-
-def start_test():
-    pass
-
-def get_test_status():
-    pass
-
-def get_test_result():
-    pass
-
-def reset_all_engines():
-    pass
+        
 
 class Action():
 
@@ -248,7 +312,83 @@ class Action():
         self._TN_Conn.Connection.write(str_encoded)
         time.sleep(time_out)
 
+###Burn-in start,status,result
+#Burn-in start
+    def _put_burn_in_file(self,file_name):
+        obj_FTP = self._ftp()
+        time.sleep(0.1)
+        obj_FTP.PutFile('/pmt', './IOG-3', file_name, file_name)
+        time.sleep(2)
+        del obj_FTP
+        s.chg_light_to_red(self.obj_light_FTP,self.instance_light_FTP)
 
+    def _put_params(self):
+        # Prepare test with putting 'params_new' file
+        self._put_burn_in_file('params_new')
+
+    def _put_command():
+        # start test with putting 'command' file
+        self._put_burn_in_file('command')
+
+    def start_test(self):
+        self._put_params()
+        status_ready = self.get_status()
+        if status_ready == 'Ready':
+            s.msg_out(self.message_output,'    3.1 Ready to start testing.\n')
+            self._put_command()
+        else:
+            print('Please check "params".')
+        time.sleep(2)
+        status_started = self.get_status()
+        if status_started == 'Testing':
+            s.msg_out(self.message_output,'    3.2 Testing started.\n')
+            print('Testing started.')
+        else:
+            print('Please check "command".')
+
+#Burn-in status
+    def get_status(self):
+        obj_FTP = self._ftp()
+        obj_FTP.GetFile('/pmt', './IOG-3', 'status', 'status_file')
+        try:
+            with open('./IOG-3/status_file') as f:
+                status = f.read(10)
+        except Exception:
+            print('Can not get status')
+        s.chg_light_to_red(self.obj_light_FTP,self.instance_light_FTP)
+        return status
+
+#Burn-in result
+    def _get_result_file(self):
+        s.make_dir(strResultFolder)
+        self.get_trace(strResultFolder,1)
+        obj_FTP = self._ftp()
+        time.sleep(0.1)
+        obj_FTP.GetFile('/pmt', strResultFolder, 'result', 'result')
+        obj_FTP.GetFile('/pmt', strResultFolder, 'result.txt', 'result.txt')
+        time.sleep(0.5)
+        del obj_FTP
+        s.chg_light_to_red(self.obj_light_FTP,self.instance_light_FTP)
+
+    def get_result(self):
+        status_complete = self.get_status()
+        if status_complete == 'Complete':
+            self._get_result_file()
+            s.msg_out(self.message_output,'  5. Finish getting test result.')
+        else:
+            print('Test not complete, please retry later.')
+            s.msg_out(self.message_output,'  ***5. Test not complete, please retry later.')
+            sys.exit()
+#Burn-in reset
+    def reset_engine(self):
+        self._executeCMD('uid 0')
+        s.msg_out(self.message_output,'    6.1 Finish restoring UID Setting for engine %s.' % self._host)
+        s.msg_out(self.message_output,'    6.2 Start Setting engine to factory default for engine %s.' % self._host)
+        self.factory_default()
+        s.msg_out(self.message_output,'    6.2 Finish Setting engine to factory default for engine %s.' % self._host)
+
+###Opration to engine
+#change firmware
     # @s.deco_Exception
     def change_FW(self, strFWFile):
         connFTP = self._ftp()
@@ -256,7 +396,11 @@ class Action():
         connFTP.PutFile('/mbflash', './', 'fwimage', strFWFile)
         print('FW upgrade completed for {}, waiting for reboot...'.format(
             self._host))
+        s.chg_light_to_red(self.obj_light_telnet,self.instance_light_telnet)
+        s.chg_light_to_red(self.obj_light_FTP,self.instance_light_FTP)
+        s.sand_glass(45,self.message_output)
 
+#reset to factory default
     def factory_default(self):
         if self._TN_Conn.go_to_main_menu():
             self._telnet_write('f', 0.1)
@@ -266,6 +410,10 @@ class Action():
             self._telnet_write('y', 0.1)
             self._telnet_write('y', 0.1)
             print('Engine reset successful, waiting for reboot...about 20s\n')
+            s.msg_out(self.message_output,'  2. Finish restoring factory default, Rebooting...\n')
+            s.chg_light_to_red(self.obj_light_telnet,self.instance_light_telnet)
+            s.sand_glass(20,obj_msg_out)
+
 
     def change_ip_address(self, new_ip_address):
         s.msg_out(self.message_output,'    3.1 changing IP from "%s" to "%s" ...\n' % (self._host, new_ip_address))
@@ -384,8 +532,6 @@ class Action():
             s.msg_out(self.message_output,'  ***7. Changing mode of FC ports failed.\n')
             sys.exit()
 
-        
-
     def change_FC_speed(self,port,speed):
         def _change_speed(port,speed):
             self._telnet_write(port, 0.1)
@@ -463,8 +609,6 @@ class Action():
     def create_fake_drive(self):
         self._executeCMD('fake on')
         s.msg_out(self.message_output,'  10. Finish creating fake drives.\n')
-
-
 
     def mirror_and_mapping(self):
         self._executeCMD('mirror create 2044')
