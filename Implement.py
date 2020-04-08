@@ -11,8 +11,8 @@ import threading
 from collections import OrderedDict as odd
 
 # <<<Config Field>>>
-ip_engine_target = '10.203.1.175' 
-ip_engine_initiator = '10.203.1.176' 
+ip_engine_target = '10.203.1.177' 
+ip_engine_initiator = '10.203.1.178' 
 
 telnet_port = 23
 FTP_port = 21
@@ -44,29 +44,40 @@ def receive(message_output,
         version,
         speed
         ):
-    if s.is_IP(IP_Entered):
-        pass
-    else:
-        message_output.insert('insert','\n***Please type correct IP address\n')
-        sys.exit()
+
+    def _entry_judge():
+        if s.is_IP(IP_Entered) and license:
+            return True
+        elif not s.is_IP(IP_Entered):
+            message_output.insert('insert','\n***Please type correct IP address.\n')
+            sys.exit()
+        elif not license:
+            message_output.insert('insert','\n***Please type correct license code.\n')
+            sys.exit()
+        else:
+            message_output.insert('insert','\n***Please check ip and(or) licenses.\n')
+            sys.exit()
+
     solid_args = (message_output, light_obj_telnet, light_telnet, light_obj_FTP, light_FTP)
     if mode == 'target':
-        config_target(IP_Entered,license,version,speed,solid_args)
+        if _entry_judge():
+            config_target(IP_Entered,license,version,speed,solid_args)
 
     elif mode == 'initiator':
-        config_initiator(IP_Entered,license,version,speed,solid_args)
+        if _entry_judge():
+            config_initiator(IP_Entered,license,version,speed,solid_args)
 
     elif mode == 'start':
-        start_test(license,version,speed,solid_args)
+        start_test(version,solid_args)
 
     elif mode == 'status':
-        get_test_status(license,version,speed,solid_args)
+        get_test_status(version,solid_args)
 
     elif mode == 'result':
-        get_test_result(license,version,speed,solid_args)
+        get_test_result(version,solid_args)
 
     elif mode == 'reset':
-        reset_all_engines(license,version,speed,solid_args)
+        reset_all_engines(version,solid_args)
 
 
 ### Test Field
@@ -85,7 +96,7 @@ def receive(message_output,
 
 #     return max(int(_get_serial_num(vpd_engine_target)), int(_get_serial_num(vpd_engine_initiator)))
 
-def start_test(ip_engine_initiator,license,version,speed,solid_args):
+def start_test(version,solid_args):
     obj_msg_out = solid_args[0]
     # obj_light_telnet = solid_args[1]
     # instance_light_telnet = solid_args[2]
@@ -99,7 +110,7 @@ def start_test(ip_engine_initiator,license,version,speed,solid_args):
     del objEngine
     s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
 
-def get_test_status(ip_engine_initiator,license,version,speed,solid_args):
+def get_test_status(version,solid_args):
     obj_msg_out = solid_args[0]
     # obj_light_telnet = solid_args[1]
     # instance_light_telnet = solid_args[2]
@@ -112,7 +123,7 @@ def get_test_status(ip_engine_initiator,license,version,speed,solid_args):
     del objEngine
     s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
 
-def get_test_result(ip_engine_initiator,license,version,speed,solid_args):
+def get_test_result(version,solid_args):
     obj_msg_out = solid_args[0]
     # obj_light_telnet = solid_args[1]
     # instance_light_telnet = solid_args[2]
@@ -154,68 +165,74 @@ def _config_universal(mode, IP_Entered,license,version,speed,solid_args):
     obj_light_FTP = solid_args[3]
     instance_light_FTP = solid_args[4]
 
+    if mode == 'target':
+        ip_engine = ip_engine_target
+    elif mode == 'initiator':
+        ip_engine = ip_engine_initiator
+
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    s.msg_out(obj_msg_out,'  1. Start changing FW.\n')
+    s.msg_out(obj_msg_out,'  0.1 Start changing FW.\n')
     # objEngine.change_FW(firmware_file_name)
-    s.msg_out(obj_msg_out,'  1. Finish changing FW, Rebooting...\n')
+    s.msg_out(obj_msg_out,'  0.1 Finish changing FW, Rebooting...\n')
     del objEngine
 
-    # s.sand_glass(45,obj_msg_out)
-
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    s.msg_out(obj_msg_out,'  2. Start restoring factory default.\n')
+    s.msg_out(obj_msg_out,'  0.2 Start restoring factory default.\n')
     objEngine.factory_default()
-    time.sleep(0.5)
+    time.sleep(0.25)
     del objEngine
 
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
-    solid_args[0].insert('insert','  3. Start changing IP address.\n')
-    objEngine.change_ip_address(ip_engine_target)
-    solid_args[0].insert('insert','  3. Finish changing IP address, Rebooting...\n')
+    solid_args[0].insert('insert','  0.3 Start changing IP address.\n')
+    objEngine.change_ip_address(ip_engine)
+    time.sleep(0.25)
     del objEngine
-    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
-    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
-    s.sand_glass(20,obj_msg_out)
-    
 
-    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
-    s.msg_out(obj_msg_out,'  4. Start changing UID.\n')
+    objEngine = Action(ip_engine, telnet_port, passwd, FTP_port, version, solid_args)
+    s.msg_out(obj_msg_out,'  0.4 Start changing UID.\n')
     objEngine.change_UID(mode)
-    s.msg_out(obj_msg_out,'  4. Finish changing UID, Rebooting...\n')
+    time.sleep(0.25)
     del objEngine
-    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
-    s.chg_light_to_red(obj_light_FTP,instance_light_FTP)
-    s.sand_glass(20,obj_msg_out)
 
-    objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
-    s.msg_out(obj_msg_out,'  5. Start installing license.\n')
-    objEngine.install_license(license)
-
-    s.msg_out(obj_msg_out,'  6. Start setting shutdown behaviour.\n')
+    objEngine = Action(ip_engine, telnet_port, passwd, FTP_port, version, solid_args)
+    
+    s.msg_out(obj_msg_out,'  0.5 Start setting shutdown behaviour.\n')
     objEngine.shutdown_behaviour()
 
-    s.msg_out(obj_msg_out,'  7. Start changing mode of FC ports.\n')
+    s.msg_out(obj_msg_out,'  0.6 Start changing mode of FC ports.\n')
     objEngine.change_FC_mode('all','loop')
 
-    s.msg_out(obj_msg_out,'  8. Start changing speed of FC ports.\n')
+    s.msg_out(obj_msg_out,'  0.7 Start changing speed of FC ports.\n')
     objEngine.change_FC_speed('all',speed)
 
-    s.msg_out(obj_msg_out,'  9. Start syncing time of engine with system.\n')
+    s.msg_out(obj_msg_out,'  0.8 Start installing license.\n')
+    objEngine.install_license(license)
+
+    s.msg_out(obj_msg_out,'  0.9 Start syncing time of engine with system.\n')
     objEngine.sync_time()
+
+    time.sleep(0.25)
+    del objEngine
+    time.sleep(1)
 
 def config_target(IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
+    obj_light_telnet = solid_args[1]
+    instance_light_telnet = solid_args[2]
+    # obj_light_FTP = solid_args[3]
+    # instance_light_FTP = solid_args[4]
+
     _config_universal('target', IP_Entered,license,version,speed,solid_args)
 
     objEngine = Action(ip_engine_target, telnet_port, passwd, FTP_port, version, solid_args)
 
-    s.msg_out(obj_msg_out,'  10. Start creating fake drives.\n')
+    s.msg_out(obj_msg_out,'  1.1 Start creating fake drives.\n')
     objEngine.create_fake_drive()
 
-    s.msg_out(obj_msg_out,'  11. Start creating mirror and mapping.\n')
+    s.msg_out(obj_msg_out,'  1.2 Start creating mirror and mapping.\n')
     objEngine.mirror_and_mapping()
 
-    s.msg_out(obj_msg_out,'  12. Start registering initiators.\n')
+    s.msg_out(obj_msg_out,'  1.3 Start registering initiators.\n')
     objEngine.register_initiator()
 
     #show info -- mirror and mapping.
@@ -224,22 +241,36 @@ def config_target(IP_Entered,license,version,speed,solid_args):
     #show info -- conmgr status.
     objEngine.show_conmgr_status()
 
+    s.msg_out(obj_msg_out,'  1. Finish configuring target engine.\n')
+    time.sleep(0.25)
+    del objEngine
+    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
+
 def config_initiator(IP_Entered,license,version,speed,solid_args):
     obj_msg_out = solid_args[0]
+    obj_light_telnet = solid_args[1]
+    instance_light_telnet = solid_args[2]
+    # obj_light_FTP = solid_args[3]
+    # instance_light_FTP = solid_args[4]
+
     _config_universal('initiator', IP_Entered,license,version,speed,solid_args)
 
     objEngine = Action(ip_engine_initiator, telnet_port, passwd, FTP_port, version, solid_args)
-    s.msg_out(obj_msg_out,'  10. Start registering drives.\n')
+    s.msg_out(obj_msg_out,'  2.1 Start registering drives.\n')
     objEngine.register_drives()
 
     #show info -- conmgr status.
     objEngine.show_conmgr_status()
         
+    s.msg_out(obj_msg_out,'  2. Finish configuring initiator engine.\n')
+    time.sleep(0.25)
+    del objEngine
+    s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
 
 class Action():
 
     def __init__(self, strIP, intTNPort, strPassword,
-                 intFTPPort, version, solid_args, intTimeout=1.5):
+                 intFTPPort, version, solid_args, intTimeout=3):
         self._host = strIP
         self._TNport = intTNPort
         self._FTPport = intFTPPort
@@ -307,54 +338,61 @@ class Action():
             s.msg_out(self.message_output, '0. FTP Connect to %s Failed!!!\n' % self._host)
         return connFTP
 
-    def _telnet_write(self, str, time_out):
+    def _telnet_write(self, str, time_out = 0.5):
         str_encoded = s.encode_utf8(str)
         self._TN_Conn.Connection.write(str_encoded)
         time.sleep(time_out)
 
 ###Burn-in start,status,result
 #Burn-in start
-    def _put_burn_in_file(self,file_name):
+    def _put_burn_in_file(self,file_name_remote,file_name_local):
         obj_FTP = self._ftp()
         time.sleep(0.1)
-        obj_FTP.PutFile('/pmt', './IOG-3', file_name, file_name)
+        obj_FTP.PutFile('/pmt', './IOG-3', file_name_remote, file_name_local,'asc')
         time.sleep(2)
         del obj_FTP
         s.chg_light_to_red(self.obj_light_FTP,self.instance_light_FTP)
 
     def _put_params(self):
         # Prepare test with putting 'params_new' file
-        self._put_burn_in_file('params_new')
+        self._put_burn_in_file('params','params_new')
 
     def _put_command():
         # start test with putting 'command' file
-        self._put_burn_in_file('command')
+        self._put_burn_in_file('command','command')
 
     def start_test(self):
         self._put_params()
         status_ready = self.get_status()
+        print('---------got status',status_ready)
         if status_ready == 'Ready':
             s.msg_out(self.message_output,'    3.1 Ready to start testing.\n')
             self._put_command()
+            time.sleep(2)
+            status_started = self.get_status()
+            if status_started == 'Testing':
+                s.msg_out(self.message_output,'    3.2 Testing started.\n')
+                print('Testing started.')
+            else:
+                print('Please check "command".')
         else:
             print('Please check "params".')
-        time.sleep(2)
-        status_started = self.get_status()
-        if status_started == 'Testing':
-            s.msg_out(self.message_output,'    3.2 Testing started.\n')
-            print('Testing started.')
-        else:
-            print('Please check "command".')
+        
 
 #Burn-in status
     def get_status(self):
         obj_FTP = self._ftp()
-        obj_FTP.GetFile('/pmt', './IOG-3', 'status', 'status_file')
-        try:
-            with open('./IOG-3/status_file') as f:
-                status = f.read(10)
-        except Exception:
-            print('Can not get status')
+        obj_FTP.GetFile('/pmt', './IOG-3', 'status', 'status_file', 'asc')
+        with open('./IOG-3/status_file') as f:
+            status = f.read(10)
+            print(status)
+        # try:
+        #     print('------begin open file')
+        #     with open('./IOG-3/status_file') as f:
+        #         status = f.read(10)
+        #         print(status)
+        # except Exception:
+        #     print('Can not get status')
         s.chg_light_to_red(self.obj_light_FTP,self.instance_light_FTP)
         return status
 
@@ -396,6 +434,7 @@ class Action():
         connFTP.PutFile('/mbflash', './', 'fwimage', strFWFile)
         print('FW upgrade completed for {}, waiting for reboot...'.format(
             self._host))
+        s.msg_out(self.message_output,'  0.1 Finish changing firmware, Rebooting...\n')
         s.chg_light_to_red(self.obj_light_telnet,self.instance_light_telnet)
         s.chg_light_to_red(self.obj_light_FTP,self.instance_light_FTP)
         s.sand_glass(45,self.message_output)
@@ -403,39 +442,44 @@ class Action():
 #reset to factory default
     def factory_default(self):
         if self._TN_Conn.go_to_main_menu():
-            self._telnet_write('f', 0.1)
+            self._telnet_write('f')
             self._TN_Conn.Connection.read_until(s.encode_utf8('Reset'), timeout = 1)
             time.sleep(0.25)
-            self._telnet_write('y', 0.1)
-            self._telnet_write('y', 0.1)
-            self._telnet_write('y', 0.1)
-            print('Engine reset successful, waiting for reboot...about 20s\n')
-            s.msg_out(self.message_output,'  2. Finish restoring factory default, Rebooting...\n')
+            self._telnet_write('y')
+            self._telnet_write('y')
+            self._telnet_write('y')
+            print('Finish restoring factory default, Reboot...\n')
+            s.msg_out(self.message_output,'  0.2 Finish restoring factory default, Rebooting...\n')
             s.chg_light_to_red(self.obj_light_telnet,self.instance_light_telnet)
-            s.sand_glass(20,obj_msg_out)
+            s.sand_glass(20,self.message_output)
 
 
     def change_ip_address(self, new_ip_address):
-        s.msg_out(self.message_output,'    3.1 changing IP from "%s" to "%s" ...\n' % (self._host, new_ip_address))
+        s.msg_out(self.message_output,'    0.3.1 changing IP from "%s" to "%s" ...\n' % (self._host, new_ip_address))
+        print('changing IP from "%s" to "%s" ...\n' % (self._host, new_ip_address))
         if self._TN_Conn.go_to_main_menu():
-            self._telnet_write('6', 0.1)
+            self._telnet_write('6')
             self._TN_Conn.Connection.read_until(s.encode_utf8('interface'), timeout = 2)
             time.sleep(0.2)
-            self._telnet_write('e', 0.1)
-            self._telnet_write('a', 0.1)
+            self._telnet_write('e')
+            self._telnet_write('a')
             self._TN_Conn.Connection.read_until(s.encode_utf8('new IP'), timeout = 2)
-            self._telnet_write(new_ip_address, 0.1)
-            self._telnet_write('\r', 0.1)
-            self._telnet_write('\r', 0.1)
+            self._telnet_write(new_ip_address)
+            self._telnet_write('\r')
+            self._telnet_write('\r')
 
             self._TN_Conn.Connection.read_until('<Enter> = done'.encode(encoding="utf-8"), timeout = 2)
-            self._telnet_write('\r', 0.1)
+            self._telnet_write('\r')
             # try:
             self._TN_Conn.Connection.read_until(s.encode_utf8('Coredump'), timeout = 2)
             self._TN_Conn.Connection.write(s.encode_utf8('b'))
             self._TN_Conn.Connection.read_until(s.encode_utf8('Reboot'), timeout = 1)
             time.sleep(0.4)
             self._TN_Conn.Connection.write(s.encode_utf8('y'))
+
+            s.msg_out(self.message_output,'  0.3 Finish changing IP address, Rebooting...\n')
+            s.chg_light_to_red(self.obj_light_telnet,self.instance_light_telnet)
+            s.sand_glass(20,self.message_output)
 
     def change_UID(self,mode):
         if mode == 'target':
@@ -449,14 +493,14 @@ class Action():
         output = self._executeCMD(uid_cmd)
         if 'take full effect!' in output:
             self._executeCMD('boot')
-        s.msg_out(self.message_output,'  4. Finish changeing UID, Rebooting')
+        s.msg_out(self.message_output,'  0.4 Finish changeing UID, Rebooting...\n')
         s.sand_glass(20,self.message_output)
 
     def install_license(self, string_license):
         if string_license:
             lst_lsc = re.split(' |,|;',string_license)
             if len(lst_lsc) != 3:
-                s.msg_out(self.message_output,'    ***5.0 Please check license code')
+                s.msg_out(self.message_output,'    ***0.5 Please check license code\n')
                 sys.exit()
             lst_lsc_id = [3,5,6]
             lst_lsc_desc = ['Firmware Downgrade','IO Generater','Fake Drive']
@@ -467,95 +511,104 @@ class Action():
                 output = self._executeCMD(cmd_lsc_install)
                 if 'installed' in output:
                     s.msg_out(
-                        self.message_output,'    5.%d %s License install successful on %s.\n' % (
+                        self.message_output,'    0.5.%d %s License install successful on %s.\n' % (
                             i+1,lst_lsc_desc[i],self._host))
                     flag_success = flag_success + 1
                 else:
-                    s.msg_out(self.message_output,'    ***5.%d %s License isntall failed!' % (i+1,lst_lsc_desc[i]))
+                    s.msg_out(self.message_output,'    ***0.5.%d %s License isntall failed!\n' % (i+1,lst_lsc_desc[i]))
             if flag_success == 3:
-                s.msg_out(self.message_output,'  5. Finish installing licenses on %s.' % self._host)
+                s.msg_out(self.message_output,'  0.5 Finish installing licenses on %s.\n' % self._host)
 
         else:
-            s.msg_out(self.message_output,'  ***5.0 License install failed on %s.\n    Please check license code' % self._host)
+            s.msg_out(self.message_output,'  ***0.5 License install failed on %s.\n    Please check license code\n' % self._host)
             sys.exit()
 
     def shutdown_behaviour(self):
         if self._TN_Conn.go_to_main_menu():
-            self._telnet_write('6', 0.1)
+            self._telnet_write('6')
+            # output6 = self._TN_Conn.Connection.read_until(s.encode_utf8('seen'), timeout = 1)
+            # print('------------------shutdown',output6)
             for i in range(2):
                 output = self._TN_Conn.Connection.read_until(s.encode_utf8('seen'), timeout = 1)
-                if not s.encode_utf8('stay up') in output:
-                    self._telnet_write('x', 0.1)
-                else:
+                # print('------------------shutdown',output)
+                if s.encode_utf8('stay up if no storage or engines seen') in output:
                     break
-            s.msg_out(self.message_output,'  6.Finish setting shutdown behaviour.\n')
+                else:
+                    self._telnet_write('x')
+
+            s.msg_out(self.message_output,'  0.6 Finish setting shutdown behaviour.\n')
         else:
-            s.msg_out(self.message_output,'  ***5.Setting shutdown behaviour failed!')
+            s.msg_out(self.message_output,'  ***0.6 Setting shutdown behaviour failed!')
             sys.exit()
     
     # port: 'a','b','c','d','all';mode: 'loop','point'
-    def change_FC_mode(self,port,mode):
+    def change_FC_mode(self,port,port_mode):
 
-        def _change_mode(port,mode):
-            self._telnet_write(port, 0.1)
-            output = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
-            # print('--------output after write port\n',output)
-            if mode == 'loop':
-                if not s.encode_utf8('Arbitrated loop') in output:
-                    self._telnet_write('l', 0.1)
+        def _change_mode(port,port_mode):
+            time.sleep(0.25)
+            tmp = self._TN_Conn.Connection.read_until(s.encode_utf8('<Enter> = done'), timeout = 1)
+            self._telnet_write(port)
+            time.sleep(0.25)
+            output = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point-to-point mode'), timeout = 1)
+            print('--------output after write port\n',output)
+            if port_mode == 'loop':
+                if not s.encode_utf8('Current: Arbitrated loop mode') in output:
+                    self._telnet_write('l')
                     # o  = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
                     # print('----------\n',o)
-            elif mode == 'point':
-                if s.encode_utf8('Arbitrated loop') in output:
-                    self._telnet_write('l', 0.1)
+            elif port_mode == 'point':
+                if not s.encode_utf8('Current: Point-to-point mode') in output:
+                    self._telnet_write('l')
                     # o = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
                     # print('----------\n',o)
-            self._telnet_write('\r', 0.1)
-            self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
+            self._telnet_write('\r')
+            # self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
 
         if self._TN_Conn.go_to_main_menu():
             time.sleep(0.25)
-            self._telnet_write('6', 0.1)
+            self._telnet_write('6')
             # output6 = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
             # print('--------output after write 6\n',output6)
             if port == 'all':
                 lst_port = ['a','b','c','d']
                 for port in lst_port:
-                    _change_mode(port, mode)
+                    _change_mode(port, port_mode)
+                    
                     s.msg_out(self.message_output,'      Port %s Changed.\n' % port)
             else:
-                _change_mode(port, mode)
-            self._telnet_write('\r', 0.1)
-            self._telnet_write('\r', 0.1)
-            s.msg_out(self.message_output,'  7. Finish changing mode of FC ports.\n')
+                _change_mode(port, port_mode)
+            self._telnet_write('\r')
+            self._telnet_write('\r')
+            s.msg_out(self.message_output,'  0.7 Finish changing mode of FC ports.\n')
         else:
-            s.msg_out(self.message_output,'  ***7. Changing mode of FC ports failed.\n')
+            s.msg_out(self.message_output,'  ***0.7 Changing mode of FC ports failed.\n')
             sys.exit()
 
     def change_FC_speed(self,port,speed):
         def _change_speed(port,speed):
-            self._telnet_write(port, 0.1)
-            self._telnet_write('s', 0.1)
-            self._telnet_write(speed, 0.1)
+            self._telnet_write(port)
+            self._telnet_write('s')
+            self._telnet_write(speed)
             # output = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
             # print('--------output after speed set\n',output)
-            self._telnet_write('\r', 0.1)
+            self._telnet_write('\r')
 
         if self._TN_Conn.go_to_main_menu():
-            self._telnet_write('6', 0.1)
+            self._telnet_write('6')
             # output6 = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
             # print('--------output after write 6\n',output6)
             if port == 'all':
                 lst_port = ['a','b','c','d']
                 for port in lst_port:
                     _change_speed(port, speed)
+                    time.sleep(0.25)
                     s.msg_out(self.message_output,'      Port %s Changed.\n' % port)
             else:
                 _change_speed(port, speed)
-            self._telnet_write('\r', 0.1)
-            s.msg_out(self.message_output,'  8. Finish changing speed of FC ports.\n')
+            self._telnet_write('\r')
+            s.msg_out(self.message_output,'  0.8 Finish changing speed of FC ports.\n')
         else:
-            s.msg_out(self.message_output,'  ***8. Changing speed of FC ports failed!\n')
+            s.msg_out(self.message_output,'  ***0.8 Changing speed of FC ports failed!\n')
             sys.exit()
 
     def sync_time(self):
@@ -601,20 +654,20 @@ class Action():
                 print(
                     '\nSetting time for engine "%s" completed...' % 
                     self._host)
-                s.msg_out(self.message_output,'  9. Finish syncing time of engine with system.\n')
+                s.msg_out(self.message_output,'  0.9 Finish syncing time of engine with system.\n')
             else:
                 print('\nSetting time for engine "%s" failed!!!' % self._host)
-                s.msg_out(self.message_output,'  ***9. Syncing time of engine failed.\n')
+                s.msg_out(self.message_output,'  ***0.9 Syncing time of engine failed.\n')
 
     def create_fake_drive(self):
         self._executeCMD('fake on')
-        s.msg_out(self.message_output,'  10. Finish creating fake drives.\n')
+        s.msg_out(self.message_output,'  1.1 Finish creating fake drives.\n')
 
     def mirror_and_mapping(self):
         self._executeCMD('mirror create 2044')
         self._executeCMD('map auto on')
         self._executeCMD('map 0 33281')
-        s.msg_out(self.message_output,'  11. Finish creating mirror and mapping.\n')
+        s.msg_out(self.message_output,'  1.2 Finish creating mirror and mapping.\n')
 
     def show_mirror_and_mappting(self):
         string_to_show = ''
@@ -634,23 +687,11 @@ class Action():
             time.sleep(0.1)
         self._executeCMD('conmgr write')
 
-    def register_drives(self):
-        #generate command
-        lst_cmd = []
-        lst_port = ['a1','a2','a3','a4']
-        for i in range(len(lst_port)):
-            str_cmd = 'conmgr drive add S %d %s 2%d00-006022-112250 0' % (
-                i+1,lst_port[i],i+1)
-            lst_cmd.append(str_cmd)
-
-        #start registing
-        self._register(lst_cmd)
-        s.msg_out(self.message_output,'  12. Finish registering initiators.\n')
 
     def register_initiator(self):
         #generate command
         lst_cmd = []
-        lst_port = ['a1','a2','a3','a4']
+        lst_port = ['a1','a2','b1','b2']
         for i in range(len(lst_port)):
             str_cmd = 'conmgr initiator add %d %s 2%d00-006022-112251' % (
                 i+1,lst_port[i],i+1)
@@ -658,6 +699,21 @@ class Action():
 
         #start registing
         self._register(lst_cmd)
+        s.msg_out(self.message_output,'  1.3 Finish registering initiators.\n')
+
+    def register_drives(self):
+        #generate command
+        lst_cmd = []
+        lst_port = ['a1','a2','b1','b2']
+        for i in range(len(lst_port)):
+            str_cmd = 'conmgr drive add S %d %s 2%d00-006022-112250 0' % (
+                i+1,lst_port[i],i+1)
+            lst_cmd.append(str_cmd)
+
+        #start registing
+        self._register(lst_cmd)
+        s.msg_out(self.message_output,'  2.1 Finish registering initiators.\n')
+
 
     def show_conmgr_status(self):
         string_to_show = self._executeCMD('conmgr status')
@@ -825,9 +881,9 @@ class Action():
 
 # solid_args = ('a','a','a','a','a')
         
-# w = Action('10.203.1.177', 23, 'password',
+# w = Action('10.203.1.175', 23, 'password',
 #                  21, 'loxoll', solid_args, intTimeout=1.5)
-# # w.change_ip_address('10.203.1.177')
+# w.shutdown_behaviour()
 # w.install_license('234234234,23424244,24224434')
 # w.shutdown_behaviour()
 
