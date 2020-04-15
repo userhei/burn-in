@@ -56,61 +56,66 @@ class FTPConn(object):
 
     def GetFile(self, strRemoteFolder, strLocalFolder, strRemoteFileName,
                 strLocalFileName, FTPtype='bin', intBufSize=1024):
-        def _getfile():
-            try:
-                ftp = self._Connection
+        def _getfile(strRemoteFolder, strLocalFolder, strRemoteFileName,
+                strLocalFileName):
+            # try:
+            ftp = self._Connection
                 # print(ftp.getwelcome())
-                ftp.cwd(strRemoteFolder)
-                objOpenLocalFile = open('{}/{}'.format(
-                    strLocalFolder, strLocalFileName), "wb")
-                if FTPtype == 'bin':
-                    ftp.retrbinary('RETR {}'.format(strRemoteFileName),
-                                   objOpenLocalFile.write)
-                elif FTPtype == 'asc':
-                    ftp.retrlines('RETR {}'.format(strRemoteFileName),
-                                  objOpenLocalFile.write)
-                objOpenLocalFile.close()
-                ftp.cwd('/')
-                return True
-            except Exception as E:
-                s.ShowErr(self.__class__.__name__,
-                          sys._getframe().f_code.co_name,
-                          'FTP download "{}" failed with error:'.format(
-                              self._host),
-                          '"{}"'.format(E))
+            ftp.cwd(strRemoteFolder)
+            file_path_name = '%s/%s' % (strLocalFolder, strLocalFileName)
+            if FTPtype == 'asc':
+                ftp.retrlines('RETR %s' % strRemoteFileName, open(file_path_name,'w').write)
+            elif FTPtype == 'bin':
+                ftp.retrbinary('RETR %s' % strRemoteFileName, open(file_path_name,'wb').write)
+            # with open(file_path_name, "wb") as f:
+            #     if FTPtype == 'bin':
+            #         ftp.retrbinary('RETR {}'.format(strRemoteFileName),f.write)
+            #     elif FTPtype == 'asc':
+            #         ftp.retrlines(b'RETR %s' % strRemoteFileName, f.write)
+            ftp.cwd('/')
+            return True
+            # except Exception as E:
+            #     s.ShowErr(self.__class__.__name__,
+            #               sys._getframe().f_code.co_name,
+            #               'FTP download "{}" failed with error:'.format(
+            #                   self._host),
+            #               '"{}"'.format(E))
 
         if self._Connection:
-            if _getfile():
+            if _getfile(strRemoteFolder, strLocalFolder, strRemoteFileName,
+                strLocalFileName):
                 return True
         else:
             if self._FTPconnect():
-                if _getfile():
+                if _getfile(strRemoteFolder, strLocalFolder, strRemoteFileName,
+                strLocalFileName):
                     return True
 
     def PutFile(self, strRemoteFolder, strLocalFolder, strRemoteFileName,
                 strLocalFileName, FTPtype='bin', intBufSize=1024):
         def _putfile():
-            try:
-                ftp = self._Connection
-                # print(ftp.getwelcome())
-                ftp.cwd(strRemoteFolder)
-                objOpenLocalFile = open('{}/{}'.format(
-                    strLocalFolder, strLocalFileName), 'rb')
-                if FTPtype == 'bin':
-                    ftp.storbinary('STOR {}'.format(strRemoteFileName),
-                                   objOpenLocalFile, intBufSize)
-                elif FTPtype == 'asc':
-                    ftp.storlines('STOR {}'.format(
-                        strRemoteFileName), objOpenLocalFile)
-                ftp.set_debuglevel(0)
-                objOpenLocalFile.close()
-                return True
-            except Exception as E:
-                s.ShowErr(self.__class__.__name__,
-                          sys._getframe().f_code.co_name,
-                          'FTP upload "{}" failed with error:'.format(
-                              self._host),
-                          '"{}"'.format(E))
+            # try:
+            ftp = self._Connection
+            ftp.set_pasv(0)
+            # print(ftp.getwelcome())
+            ftp.cwd(strRemoteFolder)
+
+            file_path_name = '%s/%s' % (strLocalFolder, strLocalFileName)
+            print('--------',file_path_name)
+            print('---------r',strRemoteFileName)
+            w = open(file_path_name,'rb')
+            if FTPtype == 'asc':
+
+                ftp.storlines('STOR %s' % strRemoteFileName, w)
+            elif FTPtype == 'bin':
+                ftp.storbinary('STOR %s' % strRemoteFileName, open(file_path_name,'rb'))
+
+            # except Exception as E:
+            #     s.ShowErr(self.__class__.__name__,
+            #               sys._getframe().f_code.co_name,
+            #               'FTP upload "{}" failed with error:'.format(
+            #                   self._host),
+            #               '"{}"'.format(E))
 
         if self._Connection:
             if _putfile():
