@@ -170,7 +170,12 @@ def _config_universal(mode, IP_Entered,license,version,speed,solid_args):
 
     objEngine = Action(IP_Entered, telnet_port, passwd, FTP_port, version, solid_args)
     solid_args[0].insert('insert','  3. Start changing IP address.\n')
-    objEngine.change_ip_address(ip_engine_target)
+    if mode == 'target':
+        ip_engine = ip_engine_target
+    elif mode == 'initiator':
+        ip_engine = ip_engine_initiator
+
+    objEngine.change_ip_address(ip_engine)
     solid_args[0].insert('insert','  3. Finish changing IP address, Rebooting...\n')
     del objEngine
     s.chg_light_to_red(obj_light_telnet,instance_light_telnet)
@@ -537,14 +542,11 @@ class Action():
             self._telnet_write(port, 0.1)
             self._telnet_write('s', 0.1)
             self._telnet_write(speed, 0.1)
-            # output = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
-            # print('--------output after speed set\n',output)
+
             self._telnet_write('\r', 0.1)
 
         if self._TN_Conn.go_to_main_menu():
             self._telnet_write('6', 0.1)
-            # output6 = self._TN_Conn.Connection.read_until(s.encode_utf8('Default: Point'), timeout = 1)
-            # print('--------output after write 6\n',output6)
             if port == 'all':
                 lst_port = ['a','b','c','d']
                 for port in lst_port:
@@ -637,7 +639,7 @@ class Action():
     def register_drives(self):
         #generate command
         lst_cmd = []
-        lst_port = ['a1','a2','a3','a4']
+        lst_port = ['a1','a2','b1','b2']
         for i in range(len(lst_port)):
             str_cmd = 'conmgr drive add S %d %s 2%d00-006022-112250 0' % (
                 i+1,lst_port[i],i+1)
@@ -650,7 +652,7 @@ class Action():
     def register_initiator(self):
         #generate command
         lst_cmd = []
-        lst_port = ['a1','a2','a3','a4']
+        lst_port = ['a1','a2','b1','b2']
         for i in range(len(lst_port)):
             str_cmd = 'conmgr initiator add %d %s 2%d00-006022-112251' % (
                 i+1,lst_port[i],i+1)
